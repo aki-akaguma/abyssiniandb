@@ -10,7 +10,7 @@ pub use dbmap::{
     DbBytes, DbInt, DbString, FileDbMap, FileDbMapDbBytes, FileDbMapDbInt, FileDbMapDbString,
 };
 pub use inner::dbxxx::FileDbXxxInner;
-//pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut, FileDbXxxInner};
+pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut};
 use inner::semtype::*;
 use inner::FileDbInner;
 

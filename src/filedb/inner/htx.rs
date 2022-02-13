@@ -16,7 +16,7 @@ type HeaderSignature = [u8; 8];
 const CHUNK_SIZE: u32 = 128 * 1024;
 //const CHUNK_SIZE: u32 = 1024 * 1024;
 const HTX_HEADER_SZ: u64 = 128;
-const HTX_HEADER_SIGNATURE: HeaderSignature = [b's', b'i', b'a', b'm', b'd', b'b', b'H', 0u8];
+const HTX_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'H', 0u8];
 const DEFAULT_HT_SIZE: u64 = 16 * 1024 * 1024;
 
 #[cfg(not(feature = "htx_print_hits"))]
@@ -82,7 +82,7 @@ impl HtxFile {
             file_nc.1 = DEFAULT_HT_SIZE;
         } else {
             check_htxf_header(&mut file_nc.0, sig2)?;
-            let ht_size = file_nc.0.read_hash_table_size()?;
+            let ht_size = file_nc.0.read_hash_buckets_size()?;
             file_nc.1 = ht_size;
         }
         Ok(Self(Rc::new(RefCell::new(file_nc))))
@@ -114,6 +114,11 @@ impl HtxFile {
         locked.0.buf_stats()
     }
     //
+    #[inline]
+    pub fn read_hash_buckets_size(&self) -> Result<u64> {
+        let mut locked = RefCell::borrow_mut(&self.0);
+        locked.0.read_hash_buckets_size()
+    }
     #[inline]
     pub fn read_key_piece_offset(&self, hash: u64) -> Result<KeyPieceOffset> {
         let mut locked = RefCell::borrow_mut(&self.0);
@@ -159,7 +164,7 @@ impl Drop for HtxFile {
 impl HtxFile {
     pub fn ht_size_and_count(&self) -> Result<(u64, u64)> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        let ht_size = locked.0.read_hash_table_size()?;
+        let ht_size = locked.0.read_hash_buckets_size()?;
         let count = locked.0.read_item_count()?;
         Ok((ht_size, count))
     }
@@ -239,11 +244,11 @@ fn check_htxf_header(file: &mut VarFile, signature2: HeaderSignature) -> Result<
 }
 
 impl VarFile {
-    fn read_hash_table_size(&mut self) -> Result<u64> {
+    fn read_hash_buckets_size(&mut self) -> Result<u64> {
         self.seek_from_start(NodePieceOffset::new(HTX_HT_SIZE_OFFSET))?;
         self.read_u64_le()
     }
-    fn _write_hash_table_size(&mut self, val: u64) -> Result<()> {
+    fn _read_hash_buckets_size(&mut self, val: u64) -> Result<()> {
         self.seek_from_start(NodePieceOffset::new(HTX_HT_SIZE_OFFSET))?;
         self.write_u64_le(val)
     }

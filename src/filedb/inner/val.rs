@@ -17,7 +17,7 @@ type HeaderSignature = [u8; 8];
 //const CHUNK_SIZE: u32 = 4 * 4 * 4 * 1024;
 const CHUNK_SIZE: u32 = 128 * 1024;
 const _DAT_HEADER_SZ: u64 = 192;
-const DAT_HEADER_SIGNATURE: HeaderSignature = [b's', b'i', b'a', b'm', b'd', b'b', b'V', 0u8];
+const DAT_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'V', 0u8];
 
 use std::marker::PhantomData;
 

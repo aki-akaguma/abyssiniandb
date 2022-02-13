@@ -34,10 +34,6 @@ fn print_version_and_exit(_program: &str) {
 }
 
 fn print_help_and_exit(program: &str) {
-    println!(
-        "[usage] {} {{ {} }}",
-        program,
-        concat!("test_main",)
-    );
+    println!("[usage] {} {{ {} }}", program, concat!("test_main",));
     std::process::exit(0);
 }

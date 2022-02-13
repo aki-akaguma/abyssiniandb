@@ -330,12 +330,12 @@ impl VarFile {
     pub fn read_piece_offset_u64<T>(&mut self) -> Result<PieceOffset<T>> {
         self.read_u64_le().map(PieceOffset::new)
     }
-    #[cfg(not(feature = "idx_straight"))]
+    #[cfg(not(feature = "next_straight"))]
     #[inline]
     pub fn write_piece_offset_u64<T: Copy>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         self.write_u64_le(piece_offset.into())
     }
-    #[cfg(feature = "idx_straight")]
+    #[cfg(feature = "next_straight")]
     #[inline]
     pub fn write_piece_offset_u64_slice<T: Copy>(
         &mut self,
@@ -349,12 +349,12 @@ impl VarFile {
     pub fn read_node_offset_u64(&mut self) -> Result<NodePieceOffset> {
         self.read_u64_le().map(NodePieceOffset::new)
     }
-    #[cfg(not(feature = "idx_straight"))]
+    #[cfg(not(feature = "next_straight"))]
     #[inline]
     pub fn write_node_offset_u64(&mut self, node_offset: NodePieceOffset) -> Result<()> {
         self.write_u64_le(node_offset.into())
     }
-    #[cfg(feature = "idx_straight")]
+    #[cfg(feature = "next_straight")]
     #[inline]
     pub fn _write_node_offset_u64_slice(
         &mut self,
@@ -364,7 +364,7 @@ impl VarFile {
             unsafe { std::mem::transmute::<&[NodePieceOffset], &[u64]>(node_offset_slice) };
         self.write_u64_le_slice(u64_slice)
     }
-    #[cfg(feature = "idx_straight")]
+    #[cfg(feature = "next_straight")]
     #[inline]
     pub fn write_piece_offset_and_node_offset_u64_slice<T: Copy>(
         &mut self,
@@ -380,7 +380,7 @@ impl VarFile {
 }
 
 #[cfg(feature = "vf_u32u32")]
-//#[cfg(any(feature = "htx", feature = "idx_straight"))]
+//#[cfg(any(feature = "htx", feature = "next_straight"))]
 impl VarFile {
     #[inline]
     pub fn read_value_piece_offset<T>(&mut self) -> Result<PieceOffset<T>> {
@@ -406,10 +406,7 @@ impl VarFile {
         self.read_u32_le().map(|o| PieceOffset::<T>::new(o as u64))
     }
     #[inline]
-    pub fn write_next_piece_offset<T: Copy>(
-        &mut self,
-        piece_offset: PieceOffset<T>,
-    ) -> Result<()> {
+    pub fn write_next_piece_offset<T: Copy>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         debug_assert!(piece_offset.as_value() <= u32::MAX as u64);
         #[cfg(feature = "siamese_debug")]
         let val = piece_offset
@@ -423,7 +420,7 @@ impl VarFile {
 }
 
 #[cfg(any(feature = "vf_u64u64", feature = "vf_vu64"))]
-//#[cfg(any(feature = "htx", feature = "idx_straight"))]
+//#[cfg(any(feature = "htx", feature = "next_straight"))]
 impl VarFile {
     #[inline]
     pub fn read_value_piece_offset(&mut self) -> Result<ValuePieceOffset> {
@@ -462,12 +459,12 @@ impl VarFile {
         self.write_u32_le(val)
     }
     //
-    #[cfg(not(any(feature = "htx", feature = "idx_straight")))]
+    #[cfg(not(any(feature = "htx", feature = "next_straight")))]
     #[inline]
     pub fn read_piece_offset<T>(&mut self) -> Result<PieceOffset<T>> {
         self.read_u32_le().map(|o| PieceOffset::<T>::new(o as u64))
     }
-    #[cfg(not(any(feature = "htx", feature = "idx_straight")))]
+    #[cfg(not(any(feature = "htx", feature = "next_straight")))]
     #[inline]
     pub fn write_piece_offset<T: Copy>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         debug_assert!(piece_offset.as_value() <= u32::MAX as u64);
@@ -553,7 +550,7 @@ impl VarFile {
     }
     //
     #[cfg(any(
-        not(any(feature = "htx", feature = "idx_straight")),
+        not(any(feature = "htx", feature = "next_straight")),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]
@@ -561,7 +558,7 @@ impl VarFile {
         self.read_u64_le().map(PieceOffset::<T>::new)
     }
     #[cfg(any(
-        not(any(feature = "htx", feature = "idx_straight")),
+        not(any(feature = "htx", feature = "next_straight")),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]
@@ -746,7 +743,7 @@ impl VarFile {
     }
     //
     #[cfg(any(
-        not(any(feature = "htx", feature = "idx_straight")),
+        not(any(feature = "htx", feature = "next_straight")),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]
@@ -754,7 +751,7 @@ impl VarFile {
         self._read_vu64_u64().map(|v| PieceOffset::<T>::new(v * 8))
     }
     #[cfg(any(
-        not(any(feature = "htx", feature = "idx_straight")),
+        not(any(feature = "htx", feature = "next_straight")),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]
@@ -765,12 +762,12 @@ impl VarFile {
         self._write_vu64_u64(v / 8)
     }
     /*
-    #[cfg(not(any(feature = "htx", feature = "idx_straight")))]
+    #[cfg(not(any(feature = "htx", feature = "next_straight")))]
     #[inline]
     pub fn read_piece_offset<T>(&mut self) -> Result<PieceOffset<T>> {
         self._read_vu64_u64().map(PieceOffset::<T>::new)
     }
-    #[cfg(not(any(feature = "htx", feature = "idx_straight")))]
+    #[cfg(not(any(feature = "htx", feature = "next_straight")))]
     #[inline]
     pub fn write_piece_offset<T>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         let v: u64 = piece_offset.into();

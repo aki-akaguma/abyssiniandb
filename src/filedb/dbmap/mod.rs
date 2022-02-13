@@ -1,7 +1,7 @@
 use super::super::{DbMap, DbMapKeyType, DbXxx, DbXxxBase, DbXxxObjectSafe};
-use super::{ CheckFileDbMap, CountOfPerSize, KeysCountStats, LengthStats, RecordSizeStats, };
-use super::{ FileDbParams, FileDbXxxInner, Key, Value };
-//use super::{ DbXxxIntoIter, DbXxxIter, DbXxxIterMut };
+use super::{CheckFileDbMap, CountOfPerSize, KeysCountStats, LengthStats, RecordSizeStats};
+use super::{FileDbParams, FileDbXxxInner, Key, Value};
+use super::{ DbXxxIntoIter, DbXxxIter, DbXxxIterMut };
 use std::cell::RefCell;
 use std::io::Result;
 use std::path::Path;
@@ -150,7 +150,6 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbMap<KT> {
 
 impl<KT: DbMapKeyType> DbXxx<KT> for FileDbMap<KT> {}
 
-/*
 impl<KT: DbMapKeyType> DbMap<KT> for FileDbMap<KT> {
     #[inline]
     fn iter(&self) -> DbXxxIter<KT> {
@@ -192,4 +191,4 @@ impl<KT: DbMapKeyType> IntoIterator for &mut FileDbMap<KT> {
         DbXxxIterMut::new(self.0.clone()).unwrap()
     }
 }
-*/
+

@@ -18,7 +18,7 @@ type HeaderSignature = [u8; 8];
 //const CHUNK_SIZE: u32 = 4 * 4 * 4 * 1024;
 const CHUNK_SIZE: u32 = 128 * 1024;
 const _DAT_HEADER_SZ: u64 = 192;
-const DAT_HEADER_SIGNATURE: HeaderSignature = [b's', b'i', b'a', b'm', b'd', b'b', b'K', 0u8];
+const DAT_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'K', 0u8];
 
 use std::marker::PhantomData;
 
@@ -119,6 +119,11 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
         locked.read_piece_only_value_offset(offset)
     }
     #[inline]
+    pub fn read_piece_only_next_offset(&self, offset: KeyPieceOffset) -> Result<KeyPieceOffset> {
+        let mut locked = self.0.borrow_mut();
+        locked.read_piece_only_next_offset(offset)
+    }
+    #[inline]
     pub fn read_piece(&self, offset: KeyPieceOffset) -> Result<KeyPiece<KT>> {
         let mut locked = self.0.borrow_mut();
         locked.read_piece(offset)
@@ -134,7 +139,12 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
         locked.delete_piece(offset)
     }
     #[inline]
-    pub fn add_key_piece(&self, key: &KT, value_offset: ValuePieceOffset, next_offset: KeyPieceOffset) -> Result<KeyPiece<KT>> {
+    pub fn add_key_piece(
+        &self,
+        key: &KT,
+        value_offset: ValuePieceOffset,
+        next_offset: KeyPieceOffset,
+    ) -> Result<KeyPiece<KT>> {
         let mut locked = self.0.borrow_mut();
         locked.add_key_piece(key, value_offset, next_offset)
     }
@@ -313,7 +323,11 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         }
     }
     #[inline]
-    pub fn with_key_value_next(key: KT, value_offset: ValuePieceOffset, next_offset: KeyPieceOffset) -> Self {
+    pub fn with_key_value_next(
+        key: KT,
+        value_offset: ValuePieceOffset,
+        next_offset: KeyPieceOffset,
+    ) -> Self {
         Self {
             key,
             value_offset,
@@ -352,12 +366,15 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         let (encorded_piece_len, piece_len) = {
             let enc_key_len = vu64::encoded_len(key_len.as_value() as u64) as u32;
             //
-            //#[cfg(any(feature = "htx", feature = "idx_straight"))]
+            #[cfg(feature = "next_straight")]
             let enc_val_off = 8;
-            //#[cfg(not(any(feature = "htx", feature = "idx_straight")))]
-            //let enc_val_off = vu64::encoded_len(self.value_offset.as_value() as u64) as u32;
+            #[cfg(not(feature = "next_straight"))]
+            let enc_val_off = vu64::encoded_len(self.value_offset.as_value() as u64) as u32;
             //
+            #[cfg(feature = "next_straight")]
             let enc_next_off = 8;
+            #[cfg(not(feature = "next_straight"))]
+            let enc_next_off = vu64::encoded_len(self.next_offset.as_value() as u64) as u32;
             //
             let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_next_off;
             //
@@ -382,12 +399,15 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         file.write_key_len(key_len)?;
         file.write_all_small(key)?;
         //
-        //#[cfg(any(feature = "htx", feature = "idx_straight"))]
+        #[cfg(feature = "next_straight")]
         file.write_value_piece_offset(self.value_offset)?;
-        //#[cfg(not(any(feature = "htx", feature = "idx_straight")))]
-        //file.write_piece_offset(self.value_offset)?;
+        #[cfg(not(feature = "next_straight"))]
+        file.write_piece_offset(self.value_offset)?;
         //
+        #[cfg(feature = "next_straight")]
         file.write_next_piece_offset(self.next_offset)?;
+        #[cfg(not(feature = "next_straight"))]
+        file.write_piece_offset(self.next_offset)?;
         //
         file.write_zero_to_offset(self.offset + self.size)?;
         //
@@ -407,8 +427,16 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
     }
 
     #[inline]
-    fn add_key_piece(&mut self, key: &KT, value_offset: ValuePieceOffset, next_offset: KeyPieceOffset) -> Result<KeyPiece<KT>> {
-        self.write_piece(KeyPiece::with_key_value_next(key.clone(), value_offset, next_offset), true)
+    fn add_key_piece(
+        &mut self,
+        key: &KT,
+        value_offset: ValuePieceOffset,
+        next_offset: KeyPieceOffset,
+    ) -> Result<KeyPiece<KT>> {
+        self.write_piece(
+            KeyPiece::with_key_value_next(key.clone(), value_offset, next_offset),
+            true,
+        )
     }
 
     fn write_piece(&mut self, mut piece: KeyPiece<KT>, is_new: bool) -> Result<KeyPiece<KT>> {
@@ -475,14 +503,17 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
         let maybe_slice = self.0.read_exact_maybeslice(key_len.into())?;
         let key = KT::from_bytes(&maybe_slice);
         //
-        //#[cfg(any(feature = "htx", feature = "idx_straight"))]
-        let val_offset = self.0.read_value_piece_offset()?;
-        //#[cfg(not(any(feature = "htx", feature = "idx_straight")))]
-        //let val_offset = self.0.read_piece_offset()?;
+        #[cfg(feature = "next_straight")]
+        let value_offset = self.0.read_value_piece_offset()?;
+        #[cfg(not(feature = "next_straight"))]
+        let value_offset = self.0.read_piece_offset()?;
         //
+        #[cfg(feature = "next_straight")]
         let next_offset = self.0.read_next_piece_offset()?;
+        #[cfg(not(feature = "next_straight"))]
+        let next_offset = self.0.read_piece_offset()?;
         //
-        let piece = KeyPiece::with(offset, piece_size, key, val_offset, next_offset);
+        let piece = KeyPiece::with(offset, piece_size, key, value_offset, next_offset);
         //
         Ok(piece)
     }
@@ -536,28 +567,34 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
         let key_len = self.0.read_key_len()?;
         self.0.seek_skip_length(key_len)?;
         //
-        //#[cfg(any(feature = "htx", feature = "idx_straight"))]
+        #[cfg(feature = "next_straight")]
         let value_offset = self.0.read_value_piece_offset()?;
-        //#[cfg(not(any(feature = "htx", feature = "idx_straight")))]
-        //let value_offset = self.0.read_piece_offset()?;
+        #[cfg(not(feature = "next_straight"))]
+        let value_offset = self.0.read_piece_offset()?;
         //
         Ok(value_offset)
     }
 
     #[inline]
-    pub fn read_piece_only_next_offset(&mut self, offset: KeyPieceOffset) -> Result<KeyPieceOffset> {
+    pub fn read_piece_only_next_offset(
+        &mut self,
+        offset: KeyPieceOffset,
+    ) -> Result<KeyPieceOffset> {
         debug_assert!(!offset.is_zero());
         //
         self.0.seek_skip_to_piece_key(offset)?;
         let key_len = self.0.read_key_len()?;
         self.0.seek_skip_length(key_len)?;
         //
-        //#[cfg(any(feature = "htx", feature = "idx_straight"))]
-        let value_offset = self.0.read_value_piece_offset()?;
-        //#[cfg(not(any(feature = "htx", feature = "idx_straight")))]
-        //let value_offset = self.0.read_piece_offset()?;
+        #[cfg(feature = "next_straight")]
+        let _value_offset = self.0.read_value_piece_offset()?;
+        #[cfg(not(feature = "next_straight"))]
+        let _value_offset: ValuePieceOffset = self.0.read_piece_offset()?;
         //
+        #[cfg(feature = "next_straight")]
         let next_offset = self.0.read_next_piece_offset()?;
+        #[cfg(not(feature = "next_straight"))]
+        let next_offset = self.0.read_piece_offset()?;
         //
         Ok(next_offset)
     }

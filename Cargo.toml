@@ -11,7 +11,7 @@ readme = "README.md"
 repository = "https://github.com/aki-akaguma/abyssiniandb"
 
 [features]
-default = ["vf_u64u64", "rabuf_default"]
+default = ["vf_vu64", "rabuf_default"]
 
 # for developping
 vf_u32u32 = []
@@ -32,6 +32,7 @@ rabuf_stats = ["rabuf/buf_stats"]
 
 
 # under development
+next_straight = []
 
 # for test
 abyssiniandb_debug = []

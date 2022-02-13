@@ -26,13 +26,13 @@ use abyssiniandb::filedb::CheckFileDbMap;
 macro_rules! assert_get_eq {
     ($db_map:expr, $key:expr, $value:expr) => {
         assert_eq!($db_map.get_string($key)?, Some(($value).to_string()));
-    }
+    };
 }
 
 macro_rules! assert_get_eq_none {
     ($db_map:expr, $key:expr) => {
         assert_eq!($db_map.get_string($key)?, None);
-    }
+    };
 }
 
 fn test01(_args: &[&str]) -> anyhow::Result<()> {

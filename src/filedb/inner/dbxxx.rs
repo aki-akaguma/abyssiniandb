@@ -842,9 +842,11 @@ impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
 
 // find: NEW
 impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
-    fn find_in_hash_buckets_kt(&mut self, hash: u64, key_kt: &KT)
-        -> Result<Option<(KeyPieceOffset, KeyPieceOffset)>>
-    {
+    fn find_in_hash_buckets_kt(
+        &mut self,
+        hash: u64,
+        key_kt: &KT,
+    ) -> Result<Option<(KeyPieceOffset, KeyPieceOffset)>> {
         let mut prev_key_offset = KeyPieceOffset::new(0);
         let mut key_offset = self.htx_file.read_key_piece_offset(hash)?;
         if !key_offset.is_zero() {
@@ -1027,7 +1029,8 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbXxxInner<KT> {
             let next_offset = self.htx_file.read_key_piece_offset(hash)?;
             let new_val_piece = self.val_file.add_value_piece(value)?;
             let new_key_piece =
-                self.key_file.add_key_piece(key_kt, new_val_piece.offset, next_offset)?;
+                self.key_file
+                    .add_key_piece(key_kt, new_val_piece.offset, next_offset)?;
             self.htx_file
                 .write_key_piece_offset(hash, new_key_piece.offset)?;
         }
@@ -1066,146 +1069,43 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbXxxInner<KT> {
 }
 
 // for Iterator
-/*
 //
 #[derive(Debug)]
 pub struct DbXxxIterMut<KT: DbMapKeyType> {
     db_map: Rc<RefCell<FileDbXxxInner<KT>>>,
-    /// node depth of top node to leaf node.
-    depth_nodes: Vec<(IdxNode, i32, i32)>,
+    buckets_size: u64,
+    buckets_idx: u64,
+    key_offset: KeyPieceOffset,
 }
 
 impl<KT: DbMapKeyType> DbXxxIterMut<KT> {
     pub fn new(db_map: Rc<RefCell<FileDbXxxInner<KT>>>) -> Result<Self> {
-        let depth_nodes = {
+        let buckets_size = {
             let db_map_inner = RefCell::borrow(&db_map);
-            let top_node = db_map_inner.idx_file.read_top_node()?;
-            let mut depth_nodes = vec![(top_node.clone(), 0, 0)];
-            let mut node = top_node;
-            //
-            loop {
-                let node_offset = node.get_ref().downs_get(0);
-                if node_offset.is_zero() {
-                    break;
-                }
-                let down_node = db_map_inner.idx_file.read_node(node_offset).unwrap();
-                depth_nodes.push((down_node.clone(), 0, 0));
-                node = down_node;
-            }
-            depth_nodes
+            db_map_inner.htx_file.read_hash_buckets_size()?
         };
-        //
         Ok(Self {
             db_map,
-            depth_nodes,
+            buckets_size,
+            buckets_idx: 0,
+            key_offset: KeyPieceOffset::new(0),
         })
     }
     fn next_piece_offset(&mut self) -> Option<KeyPieceOffset> {
-        if self.depth_nodes.is_empty() {
-            return None;
+        let db_map_inner = RefCell::borrow(&self.db_map);
+        if !self.key_offset.is_zero() {
+            self.key_offset = db_map_inner.key_file.read_piece_only_next_offset(self.key_offset).unwrap();
         }
-        /*
-        {
-            let depth = self.depth_nodes.len();
-            let (_, keys_idx, downs_idx) = self.depth_nodes.last_mut().unwrap();
-            eprintln!("CHECK 001: {}, {}, {}", depth, *keys_idx, *downs_idx);
-        }
-        */
-        //
-        let (key_offset, sw) = {
-            let (idx_node, keys_idx, downs_idx) = self.depth_nodes.last_mut().unwrap();
-            #[cfg(not(feature = "tr_has_short_key"))]
-            let key_offset = if *keys_idx < *downs_idx {
-                if *keys_idx < idx_node.get_ref().keys_len().try_into().unwrap() {
-                    idx_node.get_ref().keys_get((*keys_idx).try_into().unwrap())
-                } else {
-                    return None;
-                }
-            } else {
-                let node_offset = idx_node
-                    .get_ref()
-                    .downs_get((*downs_idx).try_into().unwrap());
-                if node_offset.is_zero() {
-                    idx_node.get_ref().keys_get((*keys_idx).try_into().unwrap())
-                } else {
-                    {
-                        let db_map_inner = RefCell::borrow(&self.db_map);
-                        let down_node = db_map_inner.idx_file.read_node(node_offset).unwrap();
-                        self.depth_nodes.push((down_node, 0, 0));
-                    }
-                    return self.next_piece_offset();
-                }
-            };
-            #[cfg(feature = "tr_has_short_key")]
-            let (key_offset, _short_key) = if *keys_idx < *downs_idx {
-                if *keys_idx < idx_node.get_ref().keys_len().try_into().unwrap() {
-                    idx_node.get_ref().keys_get((*keys_idx).try_into().unwrap())
-                } else {
-                    return None;
-                }
-            } else {
-                let node_offset = idx_node
-                    .get_ref()
-                    .downs_get((*downs_idx).try_into().unwrap());
-                if node_offset.is_zero() {
-                    idx_node.get_ref().keys_get((*keys_idx).try_into().unwrap())
-                } else {
-                    {
-                        let db_map_inner = RefCell::borrow(&self.db_map);
-                        let down_node = db_map_inner.idx_file.read_node(node_offset).unwrap();
-                        self.depth_nodes.push((down_node, 0, 0));
-                    }
-                    return self.next_piece_offset();
-                }
-            };
-            debug_assert!(!key_offset.is_zero());
-            //
-            *keys_idx += 1;
-            if *keys_idx >= idx_node.get_ref().keys_len().try_into().unwrap() {
-                //eprintln!("CHECK 002");
-                if *downs_idx < idx_node.get_ref().downs_len().try_into().unwrap() {
-                    let node_offset = idx_node
-                        .get_ref()
-                        .downs_get((*downs_idx).try_into().unwrap());
-                    if !node_offset.is_zero() {
-                        //eprintln!("CHECK 002.1");
-                        let db_map_inner = RefCell::borrow(&self.db_map);
-                        let down_node = db_map_inner.idx_file.read_node(node_offset).unwrap();
-                        self.depth_nodes.push((down_node, 0, 0));
-                        (key_offset, 1)
-                    } else {
-                        //eprintln!("CHECK 002.2");
-                        (key_offset, 2)
-                    }
-                } else {
-                    //eprintln!("CHECK 002.3");
-                    let (_, _, _) = self.depth_nodes.pop().unwrap();
-                    let (_, _keys_idx, downs_idx) = self.depth_nodes.last_mut().unwrap();
-                    *downs_idx += 1;
-                    (key_offset, 3)
-                }
-            } else {
-                (key_offset, 0)
-            }
-        };
-        if sw == 2 {
-            loop {
-                if self.depth_nodes.is_empty() {
-                    break;
-                }
-                let (_, _, _) = self.depth_nodes.pop().unwrap();
-                if self.depth_nodes.is_empty() {
-                    break;
-                }
-                let (idx_node, _keys_idx, downs_idx) = self.depth_nodes.last_mut().unwrap();
-                *downs_idx += 1;
-                if *downs_idx < idx_node.get_ref().downs_len().try_into().unwrap() {
-                    break;
-                }
-            }
+        while self.key_offset.is_zero() && self.buckets_idx < self.buckets_size {
+            self.key_offset = db_map_inner.htx_file.read_key_piece_offset(self.buckets_idx).unwrap();
+            self.buckets_idx += 1;
         }
         //
-        Some(key_offset)
+        if self.key_offset.is_zero() {
+            None
+        } else {
+            Some(self.key_offset)
+        }
     }
 }
 
@@ -1271,7 +1171,6 @@ impl<KT: DbMapKeyType> Iterator for DbXxxIntoIter<KT> {
         self.iter.next()
     }
 }
-*/
 
 // for debug
 impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT> {
@@ -1386,4 +1285,3 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT>
         self.htx_file.htx_filling_rate_per_mill()
     }
 }
-

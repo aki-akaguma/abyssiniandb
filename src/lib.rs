@@ -31,7 +31,7 @@ use std::path::Path;
 pub mod filedb;
 
 pub use filedb::{DbBytes, DbInt, DbString};
-//pub use filedb::{DbXxxIter, DbXxxIterMut};
+pub use filedb::{DbXxxIter, DbXxxIterMut};
 
 /// Open the file db. This data is stored in file.
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<filedb::FileDb> {
@@ -234,10 +234,8 @@ pub trait DbXxx<KT: DbMapKeyType>: DbXxxObjectSafe<KT> {
 
 /// key-value db map store interface.
 pub trait DbMap<KT: DbMapKeyType>: DbXxx<KT> {
-    /*
     fn iter(&self) -> DbXxxIter<KT>;
     fn iter_mut(&mut self) -> DbXxxIterMut<KT>;
-    */
 }
 
 /// key-value map store interface. the key type is `String`.
