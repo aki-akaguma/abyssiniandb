@@ -27,6 +27,7 @@ The simple local key-value store.
 use std::hash::Hash;
 use std::io::Result;
 use std::path::Path;
+use std::fmt::Debug;
 
 pub mod filedb;
 
@@ -248,7 +249,7 @@ pub trait DbMapDbInt: DbXxx<DbInt> {}
 pub trait DbMapDbBytes: DbXxx<DbBytes> {}
 
 /// key type
-pub trait DbMapKeyType: Ord + Clone + Default + HashValue {
+pub trait DbMapKeyType: Ord + Clone + Default + HashValue + Debug {
     /// Convert a byte slice to Key.
     fn from_bytes(bytes: &[u8]) -> Self;
     /// Signature in header of database file.

@@ -1,7 +1,7 @@
 //use anyhow::Context;
 //use std::io::BufRead;
 use abyssiniandb::filedb::{FileBufSizeParam, FileDbMapDbString, FileDbParams};
-use abyssiniandb::{DbMapKeyType, DbString};
+use abyssiniandb::{DbMap, DbMapKeyType, DbString};
 use abyssiniandb::{DbXxx, DbXxxBase};
 use std::str::FromStr;
 
@@ -93,6 +93,15 @@ fn test01(_args: &[&str]) -> anyhow::Result<()> {
 }
 
 fn test02(_args: &[&str]) -> anyhow::Result<()> {
+    let db_name = "target/tmp/testA02.abyssiniandb";
+    let _ = std::fs::remove_dir_all(db_name);
+    let db = abyssiniandb::open_file(db_name).unwrap();
+    let mut db_map = db.db_map_string("some_map1").unwrap();
+    //
+    {
+        assert_eq!(db_map.iter().next(), None);
+    }
+    //
     Ok(())
 }
 

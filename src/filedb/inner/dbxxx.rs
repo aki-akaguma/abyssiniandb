@@ -870,7 +870,7 @@ impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
                     self.htx_file.set_miss();
                     //
                     prev_key_offset = key_offset;
-                    key_offset = locked_key.read_piece_only_next_offset(key_offset)?;
+                    key_offset = locked_key.read_piece_only_bucket_next_offset(key_offset)?;
                 }
             }
         }
@@ -1023,14 +1023,15 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbXxxInner<KT> {
         if let Some((key_offset, _prev_key_offset)) = opt {
             let new_key_offset = self.store_value_on_insert(key_offset, value)?;
             if key_offset != new_key_offset {
-                panic!("key_offset != new_key_offset : in put_kt");
+                unimplemented!("key_offset != new_key_offset : in put_kt");
             }
         } else {
-            let next_offset = self.htx_file.read_key_piece_offset(hash)?;
+            // adding
+            let bucket_next_offset = self.htx_file.read_key_piece_offset(hash)?;
             let new_val_piece = self.val_file.add_value_piece(value)?;
             let new_key_piece =
                 self.key_file
-                    .add_key_piece(key_kt, new_val_piece.offset, next_offset)?;
+                    .add_key_piece(key_kt, new_val_piece.offset, bucket_next_offset)?;
             self.htx_file
                 .write_key_piece_offset(hash, new_key_piece.offset)?;
         }
@@ -1050,8 +1051,9 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbXxxInner<KT> {
                 self.htx_file
                     .write_key_piece_offset(hash, KeyPieceOffset::new(0))?;
             } else {
+                // changing link of bucket chain.
                 let mut prev_key_piece = self.key_file.read_piece(_prev_key_offset)?;
-                prev_key_piece.next_offset = key_piece.next_offset;
+                prev_key_piece.bucket_next_offset = key_piece.bucket_next_offset;
                 let new_prev_key = self.key_file.write_piece(prev_key_piece)?;
                 if _prev_key_offset != new_prev_key.offset {
                     panic!("_prev_key_offset != new_prev_key_offset : in del_kt");
@@ -1093,12 +1095,22 @@ impl<KT: DbMapKeyType> DbXxxIterMut<KT> {
     }
     fn next_piece_offset(&mut self) -> Option<KeyPieceOffset> {
         let db_map_inner = RefCell::borrow(&self.db_map);
+        let mut key_inner = RefCell::borrow_mut(&db_map_inner.key_file.0);
+        let mut htx_inner = RefCell::borrow_mut(&db_map_inner.htx_file.0);
         if !self.key_offset.is_zero() {
-            self.key_offset = db_map_inner.key_file.read_piece_only_next_offset(self.key_offset).unwrap();
+            self.key_offset = key_inner.read_piece_only_bucket_next_offset(self.key_offset).unwrap();
         }
-        while self.key_offset.is_zero() && self.buckets_idx < self.buckets_size {
-            self.key_offset = db_map_inner.htx_file.read_key_piece_offset(self.buckets_idx).unwrap();
-            self.buckets_idx += 1;
+        if self.key_offset.is_zero() {
+            let mut key_offset = self.key_offset;
+            let mut buckets_idx = self.buckets_idx;
+            let buckets_size = self.buckets_size;
+            while key_offset.is_zero() && buckets_idx < buckets_size {
+                let (next_idx, offset) = htx_inner.0.next_key_piece_offset(buckets_idx, buckets_size).unwrap();
+                key_offset = offset;
+                buckets_idx = next_idx;
+            }
+            self.key_offset = key_offset;
+            self.buckets_idx = buckets_idx;
         }
         //
         if self.key_offset.is_zero() {

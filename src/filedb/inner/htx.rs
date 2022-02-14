@@ -74,11 +74,16 @@ impl HtxFile {
         //
         if file_length.is_zero() {
             write_htxf_init_header(&mut file_nc.0, sig2)?;
-            let off = NodePieceOffset::new(HTX_HEADER_SZ + 8 * DEFAULT_HT_SIZE);
+            #[cfg(feature = "htx_bitmap")]
+            let off = NodePieceOffset::new(HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8 + DEFAULT_HT_SIZE / 8);
+            #[cfg(not(feature = "htx_bitmap"))]
+            let off = NodePieceOffset::new(HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8);
+            //
             file_nc.0.set_file_length(off)?;
-            let off = NodePieceOffset::new(HTX_HEADER_SZ + 8 * DEFAULT_HT_SIZE - 8);
+            let off = NodePieceOffset::new(off.as_value() - 8);
             file_nc.0.seek_from_start(off)?;
             file_nc.0.write_u64_le(0)?;
+            //
             file_nc.1 = DEFAULT_HT_SIZE;
         } else {
             check_htxf_header(&mut file_nc.0, sig2)?;
@@ -193,7 +198,7 @@ The htx header size is 128 bytes.
 +--------+-------+-------------+---------------------------+
 | offset | bytes | name        | comment                   |
 +--------+-------+-------------+---------------------------+
-| 0      | 8     | signature1  | b"siamdbH\0"              |
+| 0      | 8     | signature1  | b"abysdbH\0"              |
 | 8      | 8     | signature2  | 8 bytes type signature    |
 | 16     | 8     | ht size     | hash table size           |
 | 24     | 8     | count       | count of items            |
@@ -260,7 +265,7 @@ impl VarFile {
         self.seek_from_start(NodePieceOffset::new(HTX_ITEM_COUNT_OFFSET))?;
         self.write_u64_le(val)
     }
-    fn read_key_piece_offset(&mut self, idx: u64) -> Result<KeyPieceOffset> {
+    pub fn read_key_piece_offset(&mut self, idx: u64) -> Result<KeyPieceOffset> {
         self.seek_from_start(NodePieceOffset::new(HTX_HEADER_SZ + 8 * idx))?;
         self.read_u64_le().map(KeyPieceOffset::new)
     }
@@ -275,9 +280,60 @@ impl VarFile {
             self.write_item_count(count + 1)?;
         }
         */
+        // write flag into bitmap
+        #[cfg(feature = "htx_bitmap")]
+        {
+            let bitmap_idx = idx / 8;
+            let bitmap_bit_idx = idx % 8;
+            //
+            let bimap_start = HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8;
+            self.seek_from_start(NodePieceOffset::new(bimap_start + bitmap_idx))?;
+            let mut byte = self.read_u8()?;
+            if offset.is_zero() {
+                byte &= !(1 << bitmap_bit_idx);
+            } else {
+                byte |= 1 << bitmap_bit_idx;
+            }
+            //
+            self.seek_from_start(NodePieceOffset::new(bimap_start + bitmap_idx))?;
+            self.write_u8(byte)?;
+        }
+        // store into bucket
         self.seek_from_start(NodePieceOffset::new(HTX_HEADER_SZ + 8 * idx))?;
         self.write_u64_le(offset.into())?;
+        //
         Ok(())
+    }
+    pub fn next_key_piece_offset(&mut self, idx: u64, buckets_size: u64) -> Result<(u64, KeyPieceOffset)> {
+        // write flag into bitmap
+        #[cfg(feature = "htx_bitmap")]
+        let idx = {
+            let bitmap_idx = idx / 8;
+            let bitmap_bit_idx = idx % 8;
+            //
+            if bitmap_bit_idx == 0 {
+                let bimap_start = HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8;
+                self.seek_from_start(NodePieceOffset::new(bimap_start + bitmap_idx))?;
+                let mut byte = 0;
+                let mut idx = idx;
+                while byte == 0 && idx < buckets_size {
+                    byte = self.read_u8()?;
+                    idx += 8;
+                }
+                idx - 8
+            } else {
+                idx
+            }
+        };
+        //
+        self.seek_from_start(NodePieceOffset::new(HTX_HEADER_SZ + 8 * idx))?;
+        let mut idx = idx;
+        let mut off = 0;
+        while off == 0 && idx < buckets_size {
+            off = self.read_u64_le()?;
+            idx += 1;
+        }
+        Ok((idx, KeyPieceOffset::new(off)))
     }
 }
 

@@ -1,6 +1,18 @@
 mod test_iter {
     use std::collections::BTreeMap;
-    use abyssiniandb::{DbBytes, DbInt, DbMap, DbString};
+    use abyssiniandb::{DbBytes, DbInt, DbMap, DbMapKeyType, DbString};
+    //
+    fn iter_test_map_empty_iter<T: DbMap<K>, K: DbMapKeyType>(db_map: &mut T) {
+        //assert_eq!(db_map.drain().next(), None);
+        //assert_eq!(db_map.keys().next(), None);
+        //assert_eq!(db_map.values().next(), None);
+        //assert_eq!(db_map.values_mut().next(), None);
+        assert_eq!(db_map.iter().next(), None);
+        //assert_eq!(db_map.iter_mut().next(), None);
+        //assert_eq!(db_map.len(), 0);
+        //assert!(db_map.is_empty());
+        //assert_eq!(db_map.into_iter().next(), None);
+    }
     //
     fn basic_test_map_string<T: DbMap<DbString>>(db_map: &mut T) {
         // insert
@@ -180,6 +192,9 @@ mod test_iter {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_string("some_string_1").unwrap();
+        //
+        iter_test_map_empty_iter(&mut db_map);
+        //
         basic_test_map_string(&mut db_map);
         medium_test_map_string(&mut db_map);
     }
@@ -189,6 +204,9 @@ mod test_iter {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_int("some_u64_1").unwrap();
+        //
+        iter_test_map_empty_iter(&mut db_map);
+        //
         basic_test_map_dbint(&mut db_map);
         medium_test_map_dbint(&mut db_map);
     }
@@ -198,6 +216,9 @@ mod test_iter {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_bytes("some_bytes_1").unwrap();
+        //
+        iter_test_map_empty_iter(&mut db_map);
+        //
         basic_test_map_bytes(&mut db_map);
         medium_test_map_bytes(&mut db_map);
     }

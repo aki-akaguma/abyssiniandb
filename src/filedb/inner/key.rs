@@ -119,9 +119,9 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
         locked.read_piece_only_value_offset(offset)
     }
     #[inline]
-    pub fn read_piece_only_next_offset(&self, offset: KeyPieceOffset) -> Result<KeyPieceOffset> {
+    pub fn read_piece_only_bucket_next_offset(&self, offset: KeyPieceOffset) -> Result<KeyPieceOffset> {
         let mut locked = self.0.borrow_mut();
-        locked.read_piece_only_next_offset(offset)
+        locked.read_piece_only_bucket_next_offset(offset)
     }
     #[inline]
     pub fn read_piece(&self, offset: KeyPieceOffset) -> Result<KeyPiece<KT>> {
@@ -178,14 +178,16 @@ The db data header size is 192 bytes.
 +--------+-------+-------------+---------------------------+
 | offset | bytes | name        | comment                   |
 +--------+-------+-------------+---------------------------+
-| 0      | 8     | signature1  | b"siamdbK\0"              |
+| 0      | 8     | signature1  | b"abysdbK\0"              |
 | 8      | 8     | signature2  | 8 bytes type signature    |
-| 16     | 8     | reserve0    |                           |
-| 24     | 8     | reserve1    |                           |
-| 32     | 8     | free1 off   | offset of free 1st list   |
+| 16     | 8     | 1st adding  | 1st adding next off: u64  |
+| 24     | 8     | last adding | last adding next off: u64 |
+| 32     | 8     | reserve2    |                           |
+| 40     | 8     | reserve3    |                           |
+| 48     | 8     | free1 off   | offset of free 1st list   |
 | ...    | ...   | ...         | ...                       |
-| 152    | 8     | free16 off  | offset of free 16th list  |
-| 160    | 32    | reserve2    |                           |
+| 168    | 8     | free16 off  | offset of free 16th list  |
+| 176    | 16    | reserve4    |                           |
 +--------+-------+-------------+---------------------------+
 ```
 
@@ -231,7 +233,10 @@ fn check_keyrecf_header(file: &mut VarFile, signature2: HeaderSignature) -> Resu
     Ok(())
 }
 
-const REC_SIZE_FREE_OFFSET_1ST: u64 = 32;
+const ADDING_NEXT_OFFSET_1ST: u64 = 16;
+const ADDING_NEXT_OFFSET_LAST: u64 = 24;
+
+const REC_SIZE_FREE_OFFSET_1ST: u64 = 48;
 
 const REC_SIZE_FREE_OFFSET: [u64; 16] = [
     REC_SIZE_FREE_OFFSET_1ST,
@@ -301,8 +306,8 @@ pub struct KeyPiece<KT: DbMapKeyType> {
     pub key: KT,
     /// value offset.
     pub value_offset: ValuePieceOffset,
-    /// next key offset.
-    pub next_offset: KeyPieceOffset,
+    /// bucket next key offset.
+    pub bucket_next_offset: KeyPieceOffset,
 }
 
 impl<KT: DbMapKeyType> KeyPiece<KT> {
@@ -312,26 +317,27 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         size: KeyPieceSize,
         key: KT,
         value_offset: ValuePieceOffset,
-        next_offset: KeyPieceOffset,
+        bucket_next_offset: KeyPieceOffset,
     ) -> Self {
         Self {
             offset,
             size,
             key,
             value_offset,
-            next_offset,
+            bucket_next_offset,
+            ..Default::default()
         }
     }
     #[inline]
     pub fn with_key_value_next(
         key: KT,
         value_offset: ValuePieceOffset,
-        next_offset: KeyPieceOffset,
+        bucket_next_offset: KeyPieceOffset,
     ) -> Self {
         Self {
             key,
             value_offset,
-            next_offset,
+            bucket_next_offset,
             ..Default::default()
         }
     }
@@ -355,9 +361,9 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             #[cfg(feature = "vf_u64u64")]
             let enc_val_off = 8;
             //
-            let enc_next_off = 8;
+            let enc_buck_next_off = 8;
             //
-            let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_next_off;
+            let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_buck_next_off;
             //
             let encorded_piece_len = 4;
             (encorded_piece_len, piece_len)
@@ -372,11 +378,11 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             let enc_val_off = vu64::encoded_len(self.value_offset.as_value() as u64) as u32;
             //
             #[cfg(feature = "next_straight")]
-            let enc_next_off = 8;
+            let enc_buck_next_off = 8;
             #[cfg(not(feature = "next_straight"))]
-            let enc_next_off = vu64::encoded_len(self.next_offset.as_value() as u64) as u32;
+            let enc_buck_next_off = vu64::encoded_len(self.bucket_next_offset.as_value() as u64) as u32;
             //
-            let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_next_off;
+            let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_buck_next_off;
             //
             let encorded_piece_len = vu64::encoded_len((piece_len as u64 + 7) / 8) as u32;
             (encorded_piece_len, piece_len)
@@ -405,9 +411,9 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         file.write_piece_offset(self.value_offset)?;
         //
         #[cfg(feature = "next_straight")]
-        file.write_next_piece_offset(self.next_offset)?;
+        file.write_next_piece_offset(self.bucket_next_offset)?;
         #[cfg(not(feature = "next_straight"))]
-        file.write_piece_offset(self.next_offset)?;
+        file.write_piece_offset(self.bucket_next_offset)?;
         //
         file.write_zero_to_offset(self.offset + self.size)?;
         //
@@ -431,10 +437,10 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
         &mut self,
         key: &KT,
         value_offset: ValuePieceOffset,
-        next_offset: KeyPieceOffset,
+        bucket_next_offset: KeyPieceOffset,
     ) -> Result<KeyPiece<KT>> {
         self.write_piece(
-            KeyPiece::with_key_value_next(key.clone(), value_offset, next_offset),
+            KeyPiece::with_key_value_next(key.clone(), value_offset, bucket_next_offset),
             true,
         )
     }
@@ -509,11 +515,11 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
         let value_offset = self.0.read_piece_offset()?;
         //
         #[cfg(feature = "next_straight")]
-        let next_offset = self.0.read_next_piece_offset()?;
+        let bucket_next_offset = self.0.read_next_piece_offset()?;
         #[cfg(not(feature = "next_straight"))]
-        let next_offset = self.0.read_piece_offset()?;
+        let bucket_next_offset = self.0.read_piece_offset()?;
         //
-        let piece = KeyPiece::with(offset, piece_size, key, value_offset, next_offset);
+        let piece = KeyPiece::with(offset, piece_size, key, value_offset, bucket_next_offset);
         //
         Ok(piece)
     }
@@ -576,7 +582,7 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
     }
 
     #[inline]
-    pub fn read_piece_only_next_offset(
+    pub fn read_piece_only_bucket_next_offset(
         &mut self,
         offset: KeyPieceOffset,
     ) -> Result<KeyPieceOffset> {
@@ -592,11 +598,11 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
         let _value_offset: ValuePieceOffset = self.0.read_piece_offset()?;
         //
         #[cfg(feature = "next_straight")]
-        let next_offset = self.0.read_next_piece_offset()?;
+        let bucket_next_offset = self.0.read_next_piece_offset()?;
         #[cfg(not(feature = "next_straight"))]
-        let next_offset = self.0.read_piece_offset()?;
+        let bucket_next_offset = self.0.read_piece_offset()?;
         //
-        Ok(next_offset)
+        Ok(bucket_next_offset)
     }
 }
 
@@ -610,7 +616,8 @@ used piece:
 | --     | 1..5  | key len     | a byte length of key              |
 | --     | --    | key data    | raw key data                      |
 | --     | 8     | val offset  | value piece offset: u64           |
-| --     | 8     | next offset | next key piece offset: u64        |
+| --     | 8     | bucket next | bucket next key piece offset: u64 |
+| --     | 8     | adding next | adding next key piece offset: u64 |
 | --     | --    | reserve     | reserved free space               |
 +--------+-------+-------------+-----------------------------------+
 ```
