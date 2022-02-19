@@ -10,7 +10,7 @@ pub use dbmap::{
     DbBytes, DbInt, DbString, FileDbMap, FileDbMapDbBytes, FileDbMapDbInt, FileDbMapDbString,
 };
 pub use inner::dbxxx::FileDbXxxInner;
-pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut};
+pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
 use inner::semtype::*;
 use inner::FileDbInner;
 
@@ -98,6 +98,17 @@ pub enum FileBufSizeParam {
     Auto,
 }
 
+/// Parameters of hash buckets (hash bucket table)
+#[derive(Debug, Clone)]
+pub enum HashBucketsParam {
+    /// Buckets size at creation time.
+    BucketsSize(u64),
+    /// Capacity is calcurate to buckets size at creation time.
+    Capacity(u64),
+    /// Default buckets size.
+    Default,
+}
+
 /// Parameters of filedb.
 ///
 /// chunk_size is MUST power of 2.
@@ -111,6 +122,8 @@ pub struct FileDbParams {
     pub idx_buf_size: FileBufSizeParam,
     /// buffer size of htx file buffer. Default is full buffer size.
     pub htx_buf_size: FileBufSizeParam,
+    /// hash buckets size at cretation time.
+    pub buckets_size: HashBucketsParam,
 }
 
 impl std::default::Default for FileDbParams {
@@ -120,6 +133,7 @@ impl std::default::Default for FileDbParams {
             key_buf_size: FileBufSizeParam::PerMille(1000),
             idx_buf_size: FileBufSizeParam::PerMille(1000),
             htx_buf_size: FileBufSizeParam::PerMille(1000),
+            buckets_size: HashBucketsParam::Default,
         }
     }
 }

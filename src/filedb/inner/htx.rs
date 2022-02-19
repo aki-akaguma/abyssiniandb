@@ -1,4 +1,4 @@
-use super::super::{FileBufSizeParam, FileDbParams};
+use super::super::{FileBufSizeParam, FileDbParams, HashBucketsParam};
 use super::piece::PieceMgr;
 use super::semtype::*;
 use super::vfile::VarFile;
@@ -19,19 +19,53 @@ const HTX_HEADER_SZ: u64 = 128;
 const HTX_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'H', 0u8];
 const DEFAULT_HT_SIZE: u64 = 16 * 1024 * 1024;
 
-#[cfg(not(feature = "htx_print_hits"))]
 #[derive(Debug)]
-pub struct VarFileHtxCache(pub VarFile, u64);
+pub struct VarFileHtxCache {
+    pub file: VarFile,
+    buckets_size: u64,
+    #[cfg(feature = "htx_print_hits")]
+    hits: u64,
+    #[cfg(feature = "htx_print_hits")]
+    miss: u64,
+}
 
-#[cfg(feature = "htx_print_hits")]
-#[derive(Debug)]
-pub struct VarFileHtxCache(pub VarFile, u64, u64, u64);
+impl VarFileHtxCache {
+    fn new(file: VarFile) -> Self {
+        Self {
+            file,
+            buckets_size: 0,
+            #[cfg(feature = "htx_print_hits")]
+            hits: 0,
+            #[cfg(feature = "htx_print_hits")]
+            miss: 0,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct HtxFile(pub Rc<RefCell<VarFileHtxCache>>);
 
 const HTX_SIZE_FREE_OFFSET: [u64; 0] = [];
 const HTX_SIZE_ARY: [u32; 0] = [];
+
+/// returns the number of buckets needed to hold the given number of items,
+/// taking the maximum load factor into account.
+fn capacity_to_buckets_size(cap: u64) -> u64 {
+    debug_assert_ne!(cap, 0);
+    //
+    // for small hash buckets
+    if cap < 8 {
+        return if cap < 4 { 4 } else { 8 };
+    }
+    //
+    // otherwise require 1/9 buckets to be empty (88.8% load)
+    let adjusted_cap = cap + cap / 8;
+    //
+    // Any overflows will have been caught by the checked_mul. Also, any
+    // rounding errors from the division above will be cleaned up by
+    // next_power_of_two (which can't overflow because of the previous division).
+    adjusted_cap.next_power_of_two()
+}
 
 impl HtxFile {
     pub fn open_with_params<P: AsRef<Path>>(
@@ -67,88 +101,114 @@ impl HtxFile {
         };
         let file_length: NodePieceOffset = file.seek_to_end()?;
         //
-        #[cfg(not(feature = "htx_print_hits"))]
-        let mut file_nc = VarFileHtxCache(file, 0);
-        #[cfg(feature = "htx_print_hits")]
-        let mut file_nc = VarFileHtxCache(file, 0, 0, 0);
+        let mut file_nc = VarFileHtxCache::new(file);
         //
         if file_length.is_zero() {
-            write_htxf_init_header(&mut file_nc.0, sig2)?;
+            //
+            let buckets_size = match params.buckets_size {
+                HashBucketsParam::BucketsSize(x) => x.next_power_of_two(),
+                HashBucketsParam::Capacity(x) => capacity_to_buckets_size(x),
+                HashBucketsParam::Default => DEFAULT_HT_SIZE,
+            };
+            //
+            write_htxf_init_header(&mut file_nc.file, sig2, buckets_size)?;
             #[cfg(feature = "htx_bitmap")]
-            let off = NodePieceOffset::new(HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8 + DEFAULT_HT_SIZE / 8);
+            let off = NodePieceOffset::new(HTX_HEADER_SZ + buckets_size * 8 + buckets_size / 8);
             #[cfg(not(feature = "htx_bitmap"))]
-            let off = NodePieceOffset::new(HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8);
+            let off = NodePieceOffset::new(HTX_HEADER_SZ + buckets_size * 8);
             //
-            file_nc.0.set_file_length(off)?;
+            file_nc.file.set_file_length(off)?;
             let off = NodePieceOffset::new(off.as_value() - 8);
-            file_nc.0.seek_from_start(off)?;
-            file_nc.0.write_u64_le(0)?;
+            file_nc.file.seek_from_start(off)?;
+            file_nc.file.write_u64_le(0)?;
             //
-            file_nc.1 = DEFAULT_HT_SIZE;
+            file_nc.buckets_size = buckets_size;
         } else {
-            check_htxf_header(&mut file_nc.0, sig2)?;
-            let ht_size = file_nc.0.read_hash_buckets_size()?;
-            file_nc.1 = ht_size;
+            check_htxf_header(&mut file_nc.file, sig2)?;
+            file_nc.buckets_size = file_nc.file.read_hash_buckets_size()?;
         }
         Ok(Self(Rc::new(RefCell::new(file_nc))))
     }
     #[inline]
     pub fn read_fill_buffer(&self) -> Result<()> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.0.read_fill_buffer()
+        locked.file.read_fill_buffer()
     }
     #[inline]
     pub fn flush(&self) -> Result<()> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.0.flush()
+        locked.file.flush()
     }
     #[inline]
     pub fn sync_all(&self) -> Result<()> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.0.sync_all()
+        locked.file.sync_all()
     }
     #[inline]
     pub fn sync_data(&self) -> Result<()> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.0.sync_data()
+        locked.file.sync_data()
     }
     #[cfg(feature = "buf_stats")]
     #[inline]
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         let locked = RefCell::borrow(&self.0);
-        locked.0.buf_stats()
+        locked.file.buf_stats()
     }
     //
     #[inline]
     pub fn read_hash_buckets_size(&self) -> Result<u64> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.0.read_hash_buckets_size()
+        locked.file.read_hash_buckets_size()
     }
     #[inline]
-    pub fn read_key_piece_offset(&self, hash: u64) -> Result<KeyPieceOffset> {
+    pub fn read_key_piece_offset(&self, hash: HashValue) -> Result<KeyPieceOffset> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        //let ht_size = locked.0.read_hash_table_size()?;
-        let ht_size = locked.1;
-        let idx = hash % ht_size;
-        locked.0.read_key_piece_offset(idx)
+        let buckets_size = locked.buckets_size;
+        let idx = hash.as_value() % buckets_size;
+        locked.file.read_key_piece_offset(idx)
     }
     #[inline]
-    pub fn write_key_piece_offset(&self, hash: u64, offset: KeyPieceOffset) -> Result<()> {
+    pub fn write_key_piece_offset(&self, hash: HashValue, offset: KeyPieceOffset) -> Result<()> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        //let ht_size = locked.0.read_hash_table_size()?;
-        let ht_size = locked.1;
-        let idx = hash % ht_size;
-        locked.0.write_key_piece_offset(idx, offset)
+        let buckets_size = locked.buckets_size;
+        let idx = hash.as_value() % buckets_size;
+        locked
+            .file
+            .write_key_piece_offset(buckets_size, idx, offset)
     }
     #[cfg(feature = "htx_print_hits")]
+    #[inline]
     pub fn set_hits(&mut self) {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.2 += 1;
+        locked.hits += 1;
     }
     #[cfg(feature = "htx_print_hits")]
+    #[inline]
     pub fn set_miss(&mut self) {
         let mut locked = RefCell::borrow_mut(&self.0);
-        locked.3 += 1;
+        locked.miss += 1;
+    }
+    #[inline]
+    pub fn read_item_count(&self) -> Result<u64> {
+        let mut locked = RefCell::borrow_mut(&self.0);
+        locked.file.read_item_count()
+    }
+    #[inline]
+    pub fn write_item_count_up(&mut self) -> Result<()> {
+        let mut locked = RefCell::borrow_mut(&self.0);
+        let val = locked.file.read_item_count()?;
+        locked.file.write_item_count(val + 1)
+    }
+    #[inline]
+    pub fn write_item_count_down(&mut self) -> Result<()> {
+        let mut locked = RefCell::borrow_mut(&self.0);
+        let val = locked.file.read_item_count()?;
+        if val > 0 {
+            locked.file.write_item_count(val - 1)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -157,7 +217,7 @@ impl Drop for HtxFile {
     fn drop(&mut self) {
         let (hits, miss) = {
             let locked = RefCell::borrow_mut(&self.0);
-            (locked.2, locked.3)
+            (locked.hits, locked.miss)
         };
         let total = hits + miss;
         let ratio = hits as f64 / total as f64;
@@ -167,23 +227,23 @@ impl Drop for HtxFile {
 
 // for debug
 impl HtxFile {
-    pub fn ht_size_and_count(&self) -> Result<(u64, u64)> {
+    pub fn _ht_size_and_count(&self) -> Result<(u64, u64)> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        let ht_size = locked.0.read_hash_buckets_size()?;
-        let count = locked.0.read_item_count()?;
+        let ht_size = locked.file.read_hash_buckets_size()?;
+        let count = locked.file.read_item_count()?;
         Ok((ht_size, count))
     }
     pub fn htx_filling_rate_per_mill(&self) -> Result<(u64, u32)> {
         let mut locked = RefCell::borrow_mut(&self.0);
-        let ht_size = locked.1;
+        let buckets_size = locked.buckets_size;
         let mut count = 0;
-        for idx in 0..ht_size {
-            let offset = locked.0.read_key_piece_offset(idx)?;
+        for idx in 0..buckets_size {
+            let offset = locked.file.read_key_piece_offset(idx)?;
             if !offset.is_zero() {
                 count += 1;
             }
         }
-        Ok((count, (count * 1000 / ht_size) as u32))
+        Ok((count, (count * 1000 / buckets_size) as u32))
     }
 }
 
@@ -213,14 +273,18 @@ The htx header size is 128 bytes.
 const HTX_HT_SIZE_OFFSET: u64 = 16;
 const HTX_ITEM_COUNT_OFFSET: u64 = 24;
 
-fn write_htxf_init_header(file: &mut VarFile, signature2: HeaderSignature) -> Result<()> {
+fn write_htxf_init_header(
+    file: &mut VarFile,
+    signature2: HeaderSignature,
+    buckets_size: u64,
+) -> Result<()> {
     file.seek_from_start(NodePieceOffset::new(0))?;
     // signature1
     file.write_all(&HTX_HEADER_SIGNATURE)?;
     // signature2
     file.write_all(&signature2)?;
-    // ht size
-    file.write_u64_le(DEFAULT_HT_SIZE)?;
+    // buckets size
+    file.write_u64_le(buckets_size)?;
     // count .. rserve1
     file.write_all(&[0u8; 104])?;
     //
@@ -261,7 +325,7 @@ impl VarFile {
         self.seek_from_start(NodePieceOffset::new(HTX_ITEM_COUNT_OFFSET))?;
         self.read_u64_le()
     }
-    fn _write_item_count(&mut self, val: u64) -> Result<()> {
+    fn write_item_count(&mut self, val: u64) -> Result<()> {
         self.seek_from_start(NodePieceOffset::new(HTX_ITEM_COUNT_OFFSET))?;
         self.write_u64_le(val)
     }
@@ -269,7 +333,12 @@ impl VarFile {
         self.seek_from_start(NodePieceOffset::new(HTX_HEADER_SZ + 8 * idx))?;
         self.read_u64_le().map(KeyPieceOffset::new)
     }
-    fn write_key_piece_offset(&mut self, idx: u64, offset: KeyPieceOffset) -> Result<()> {
+    fn write_key_piece_offset(
+        &mut self,
+        bucket_size: u64,
+        idx: u64,
+        offset: KeyPieceOffset,
+    ) -> Result<()> {
         /*<CHECK>
         let count = self.read_item_count()?;
         if offset.is_zero() {
@@ -286,7 +355,7 @@ impl VarFile {
             let bitmap_idx = idx / 8;
             let bitmap_bit_idx = idx % 8;
             //
-            let bimap_start = HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8;
+            let bimap_start = HTX_HEADER_SZ + bucket_size * 8;
             self.seek_from_start(NodePieceOffset::new(bimap_start + bitmap_idx))?;
             let mut byte = self.read_u8()?;
             if offset.is_zero() {
@@ -304,7 +373,11 @@ impl VarFile {
         //
         Ok(())
     }
-    pub fn next_key_piece_offset(&mut self, idx: u64, buckets_size: u64) -> Result<(u64, KeyPieceOffset)> {
+    pub fn next_key_piece_offset(
+        &mut self,
+        buckets_size: u64,
+        idx: u64,
+    ) -> Result<(u64, KeyPieceOffset)> {
         // write flag into bitmap
         #[cfg(feature = "htx_bitmap")]
         let idx = {
@@ -312,10 +385,19 @@ impl VarFile {
             let bitmap_bit_idx = idx % 8;
             //
             if bitmap_bit_idx == 0 {
-                let bimap_start = HTX_HEADER_SZ + DEFAULT_HT_SIZE * 8;
+                let bimap_start = HTX_HEADER_SZ + buckets_size * 8;
                 self.seek_from_start(NodePieceOffset::new(bimap_start + bitmap_idx))?;
-                let mut byte = 0;
                 let mut idx = idx;
+                //
+                let mut byte_8 = 0;
+                while byte_8 == 0 && idx < buckets_size - 8 {
+                    byte_8 = self.read_u64_le()?;
+                    idx += 8 * 8;
+                }
+                self.seek_back_size(NodePieceSize::new(std::mem::size_of_val(&byte_8) as u32))?;
+                idx -= 8 * 8;
+                //
+                let mut byte = 0;
                 while byte == 0 && idx < buckets_size {
                     byte = self.read_u8()?;
                     idx += 8;
@@ -339,7 +421,7 @@ impl VarFile {
 
 /*
 ```text
-hash table:
+hash buckes table:
 +--------+-------+-------------+-----------------------------------+
 | offset | bytes | name        | comment                           |
 +--------+-------+-------------+-----------------------------------+
@@ -347,6 +429,15 @@ hash table:
 | 8      | 8     | key offset  | offset of key piece               |
 | --     | --    | --          | --                                |
 | --     | 8     | key offset  | offset of key piece               |
++--------+-------+-------------+-----------------------------------+
+
+hash buckes bitmap:
++--------+-------+-------------+-----------------------------------+
+| offset | bytes | name        | comment                           |
++--------+-------+-------------+-----------------------------------+
+| 0      | 8     | bitmap1     | bitmap of buckets index           |
+| --     | --    | --          | --                                |
+| --     | 8     | bitmapN     | bitmap of buckets index           |
 +--------+-------+-------------+-----------------------------------+
 ```
 */

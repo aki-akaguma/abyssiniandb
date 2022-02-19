@@ -24,15 +24,15 @@ The simple local key-value store.
 
 # Examples
 */
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::io::Result;
 use std::path::Path;
-use std::fmt::Debug;
 
 pub mod filedb;
 
 pub use filedb::{DbBytes, DbInt, DbString};
-pub use filedb::{DbXxxIter, DbXxxIterMut};
+pub use filedb::{DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
 
 /// Open the file db. This data is stored in file.
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<filedb::FileDb> {
@@ -41,6 +41,15 @@ pub fn open_file<P: AsRef<Path>>(path: P) -> Result<filedb::FileDb> {
 
 /// base interface for generic key-value map store interface. this is not include `KT`
 pub trait DbXxxBase {
+    /// returns the number of elements in the map.
+    fn len(&self) -> Result<u64>;
+
+    /// returns the number of elements in the map.
+    #[inline]
+    fn is_empty(&self) -> Result<bool> {
+        self.len().map(|a| a == 0)
+    }
+
     /// read and fill buffer.
     fn read_fill_buffer(&mut self) -> Result<()>;
 
@@ -64,6 +73,9 @@ pub trait DbXxxObjectSafe<KT: DbMapKeyType>: DbXxxBase {
 
     /// removes a key from the db. this key is store raw data and type `&[u8]`.
     fn del_kt(&mut self, key: &KT) -> Result<Option<Vec<u8>>>;
+
+    /// returns true if the map contains a value for the specified key. this key is store raw data.
+    fn includes_key_kt(&mut self, key: &KT) -> Result<bool>;
 }
 
 /// generic key-value map store interface. the key type is `KT`.
@@ -231,12 +243,50 @@ pub trait DbXxx<KT: DbMapKeyType>: DbXxxObjectSafe<KT> {
         }
         Ok(ret)
     }
+
+    /// returns true if the map contains a value for the specified key.
+    #[inline]
+    fn includes_key<'a, Q>(&mut self, key: &'a Q) -> Result<bool>
+    where
+        KT: From<&'a Q>,
+        Q: Ord + ?Sized,
+    {
+        let key_kt: KT = From::from(key);
+        self.includes_key_kt(&key_kt)
+    }
+
+    /// extends a collection with the contents of an iterator
+    #[inline]
+    fn put_from_iter<T>(&mut self, iter: T) -> Result<()>
+    where
+        T: Iterator<Item = (KT, Vec<u8>)>,
+    {
+        for (key, value) in iter {
+            self.put_kt(&key, &value)?;
+        }
+        Ok(())
+    }
 }
 
 /// key-value db map store interface.
 pub trait DbMap<KT: DbMapKeyType>: DbXxx<KT> {
+    /// An iterator visiting all key-value pairs in arbitrary order.
+    /// The iterator element type is (&'a K, &'a V).
     fn iter(&self) -> DbXxxIter<KT>;
+
+    /// An iterator visiting all key-value pairs in arbitrary order,
+    /// with mutable references to the values.
+    /// The iterator element type is (&'a K, &'a mut V).
     fn iter_mut(&mut self) -> DbXxxIterMut<KT>;
+
+    // Clears the map, removing all key-value pairs. Keeps the allocated memory for reuse.
+    //fn clear(&mut self) -> Result<()>;
+
+    /// An iterator visiting all keys in arbitrary order. The iterator element type is KT.
+    fn keys(&self) -> DbXxxKeys<KT>;
+
+    /// An iterator visiting all values in arbitrary order. The iterator element type is Vec<u8>.
+    fn values(&self) -> DbXxxValues<KT>;
 }
 
 /// key-value map store interface. the key type is `String`.

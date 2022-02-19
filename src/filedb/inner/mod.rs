@@ -24,6 +24,13 @@ mod htx;
 //#[cfg(feature = "node_cache")]
 //mod offidx;
 
+// _cold() is from hashbrown.
+// On stable we can use #[cold] to get a equivalent effect: this attributes
+// suggests that the function is unlikely to be called
+#[inline]
+#[cold]
+fn _cold() {}
+
 #[derive(Debug)]
 pub struct FileDbInner {
     db_bytes_map: BTreeMap<String, FileDbMapDbBytes>,

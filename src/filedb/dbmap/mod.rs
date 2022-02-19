@@ -1,7 +1,7 @@
 use super::super::{DbMap, DbMapKeyType, DbXxx, DbXxxBase, DbXxxObjectSafe};
 use super::{CheckFileDbMap, CountOfPerSize, KeysCountStats, LengthStats, RecordSizeStats};
+use super::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
 use super::{FileDbParams, FileDbXxxInner, Key, Value};
-use super::{ DbXxxIntoIter, DbXxxIter, DbXxxIterMut };
 use std::cell::RefCell;
 use std::io::Result;
 use std::path::Path;
@@ -116,6 +116,10 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbMap<KT> {
 
 impl<KT: DbMapKeyType> DbXxxBase for FileDbMap<KT> {
     #[inline]
+    fn len(&self) -> Result<u64> {
+        RefCell::borrow(&self.0).len()
+    }
+    #[inline]
     fn read_fill_buffer(&mut self) -> Result<()> {
         RefCell::borrow_mut(&self.0).read_fill_buffer()
     }
@@ -146,6 +150,10 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbMap<KT> {
     fn del_kt(&mut self, key: &KT) -> Result<Option<Vec<u8>>> {
         RefCell::borrow_mut(&self.0).del_kt(key)
     }
+    #[inline]
+    fn includes_key_kt(&mut self, key: &KT) -> Result<bool> {
+        RefCell::borrow_mut(&self.0).includes_key_kt(key)
+    }
 }
 
 impl<KT: DbMapKeyType> DbXxx<KT> for FileDbMap<KT> {}
@@ -158,6 +166,14 @@ impl<KT: DbMapKeyType> DbMap<KT> for FileDbMap<KT> {
     #[inline]
     fn iter_mut(&mut self) -> DbXxxIterMut<KT> {
         DbXxxIterMut::new(self.0.clone()).unwrap()
+    }
+    #[inline]
+    fn keys(&self) -> DbXxxKeys<KT> {
+        DbXxxKeys::new(self.0.clone()).unwrap()
+    }
+    #[inline]
+    fn values(&self) -> DbXxxValues<KT> {
+        DbXxxValues::new(self.0.clone()).unwrap()
     }
 }
 
@@ -191,4 +207,3 @@ impl<KT: DbMapKeyType> IntoIterator for &mut FileDbMap<KT> {
         DbXxxIterMut::new(self.0.clone()).unwrap()
     }
 }
-

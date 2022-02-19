@@ -113,6 +113,12 @@ impl VarFile {
             .map(Offset::<T>::new)
     }
     #[inline]
+    pub fn seek_back_size<T: PartialEq + Copy>(&mut self, size: Size<T>) -> Result<Offset<T>> {
+        let val: u32 = size.into();
+        self.seek(SeekFrom::Current(- (val as i64)))
+            .map(Offset::<T>::new)
+    }
+    #[inline]
     pub fn seek_to_end<T>(&mut self) -> Result<Offset<T>> {
         self.seek(SeekFrom::End(0)).map(Offset::<T>::new)
     }
@@ -174,6 +180,7 @@ impl VarFile {
         self.write_zero_to_offset(offset + size)?;
         Ok(())
     }
+    /*
     ///
     #[inline]
     pub fn write_node_clear(&mut self, offset: NodePieceOffset, size: NodePieceSize) -> Result<()> {
@@ -195,6 +202,7 @@ impl VarFile {
         self.write_zero_to_offset(offset + size)?;
         Ok(())
     }
+    */
 }
 
 impl Read for VarFile {
@@ -691,6 +699,7 @@ impl WriteVu64 for VarFile {}
 
 #[cfg(feature = "vf_vu64")]
 impl VarFile {
+    /*
     #[inline]
     pub fn read_vu64_u16(&mut self) -> Result<u16> {
         #[cfg(feature = "siamese_debug")]
@@ -702,6 +711,7 @@ impl VarFile {
         let r = self.read_and_decode_vu64().map(|n| n as u16);
         r
     }
+    */
     #[inline]
     pub fn read_vu64_u32(&mut self) -> Result<u32> {
         #[cfg(feature = "siamese_debug")]
@@ -717,10 +727,12 @@ impl VarFile {
     pub fn _read_vu64_u64(&mut self) -> Result<u64> {
         self.read_and_decode_vu64()
     }
+    /*
     #[inline]
     pub fn write_vu64_u16(&mut self, value: u16) -> Result<()> {
         self.encode_and_write_vu64(value.into())
     }
+    */
     #[inline]
     pub fn write_vu64_u32(&mut self, value: u32) -> Result<()> {
         self.encode_and_write_vu64(value.into())
@@ -802,6 +814,7 @@ impl VarFile {
         self.write_vu64_u32(value_len.into())
     }
     //
+    /*
     #[cfg(not(any(feature = "vf_node_u32", feature = "vf_node_u64")))]
     #[inline]
     pub fn read_node_offset(&mut self) -> Result<NodePieceOffset> {
@@ -833,6 +846,7 @@ impl VarFile {
     pub fn write_keys_count(&mut self, keys_count: KeysCount) -> Result<()> {
         self.write_vu64_u16(keys_count.into())
     }
+    */
 }
 
 #[cfg(feature = "vf_vu64")]

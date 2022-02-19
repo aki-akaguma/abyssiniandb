@@ -98,14 +98,14 @@ impl<const N: usize> From<&[u8; N]> for DbInt {
 impl From<u64> for DbInt {
     #[inline]
     fn from(a: u64) -> Self {
-        DbInt(a.to_be_bytes().to_vec())
+        DbInt(a.to_le_bytes().to_vec())
     }
 }
 
 impl From<&u64> for DbInt {
     #[inline]
     fn from(a: &u64) -> Self {
-        DbInt(a.to_be_bytes().to_vec())
+        DbInt(a.to_le_bytes().to_vec())
     }
 }
 
@@ -122,5 +122,26 @@ impl From<&DbInt> for DbInt {
     #[inline]
     fn from(a: &DbInt) -> Self {
         DbInt(a.0.clone())
+    }
+}
+
+impl From<DbInt> for u64 {
+    #[inline]
+    fn from(db_int: DbInt) -> u64 {
+        u64::from(&db_int)
+    }
+}
+
+impl From<&DbInt> for u64 {
+    #[inline]
+    fn from(db_int: &DbInt) -> u64 {
+        let mut a = [0u8; 8];
+        let len = db_int.0.len();
+        if len < 8 {
+            a[..len].copy_from_slice(db_int.0.as_slice());
+        } else {
+            a.copy_from_slice(&db_int.0[..8]);
+        }
+        u64::from_le_bytes(a)
     }
 }

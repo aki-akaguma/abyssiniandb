@@ -1,4 +1,4 @@
-mod test {
+mod test1 {
     use abyssiniandb::{DbBytes, DbInt, DbString, DbXxx};
     //
     fn basic_test_map_string<T: DbXxx<DbString>>(db_map: &mut T) {
@@ -11,6 +11,12 @@ mod test {
         db_map.put_string("key3", "value3").unwrap();
         db_map.put_string("key4", "value4").unwrap();
         db_map.put_string("key5", "value5").unwrap();
+        // includes key
+        assert!(db_map.includes_key("key1").unwrap());
+        assert!(db_map.includes_key("key2").unwrap());
+        assert!(db_map.includes_key("key3").unwrap());
+        assert!(db_map.includes_key("key4").unwrap());
+        assert!(db_map.includes_key("key5").unwrap());
         // get hits
         let r = db_map.get_string("key1").unwrap();
         assert_eq!(r, Some("value1".to_string()));
@@ -72,6 +78,12 @@ mod test {
         db_map.put_string(&1023, "value3").unwrap();
         db_map.put_string(&1024, "value4").unwrap();
         db_map.put_string(&1025, "value5").unwrap();
+        // includes key
+        assert!(db_map.includes_key(&1021).unwrap());
+        assert!(db_map.includes_key(&1022).unwrap());
+        assert!(db_map.includes_key(&1023).unwrap());
+        assert!(db_map.includes_key(&1024).unwrap());
+        assert!(db_map.includes_key(&1025).unwrap());
         // get hits
         let r = db_map.get_string(&1021).unwrap();
         assert_eq!(r, Some("value1".to_string()));
@@ -100,6 +112,12 @@ mod test {
         db_map.put_string(b"key3", "value3").unwrap();
         db_map.put_string(b"key4", "value4").unwrap();
         db_map.put_string(b"key5", "value5").unwrap();
+        // includes key
+        assert!(db_map.includes_key(b"key1").unwrap());
+        assert!(db_map.includes_key(b"key2").unwrap());
+        assert!(db_map.includes_key(b"key3").unwrap());
+        assert!(db_map.includes_key(b"key4").unwrap());
+        assert!(db_map.includes_key(b"key5").unwrap());
         // get hits
         let r = db_map.get_string(b"key1").unwrap();
         assert_eq!(r, Some("value1".to_string()));
@@ -246,7 +264,7 @@ mod test {
     ////
     #[test]
     fn test_file_map_string() {
-        let db_name = "target/tmp/test1-s.siamesedb";
+        let db_name = "target/tmp/test1-s.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_string("some_string_1").unwrap();
@@ -255,7 +273,7 @@ mod test {
     }
     #[test]
     fn test_file_map_dbint() {
-        let db_name = "target/tmp/test1-u.siamesedb";
+        let db_name = "target/tmp/test1-u.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_int("some_u64_1").unwrap();
@@ -264,7 +282,7 @@ mod test {
     }
     #[test]
     fn test_file_map_bytes() {
-        let db_name = "target/tmp/test1-b.siamesedb";
+        let db_name = "target/tmp/test1-b.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db.db_map_bytes("some_bytes_1").unwrap();

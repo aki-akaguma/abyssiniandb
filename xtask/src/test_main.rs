@@ -1,23 +1,29 @@
 //use anyhow::Context;
 //use std::io::BufRead;
-use abyssiniandb::filedb::{FileBufSizeParam, FileDbMapDbString, FileDbParams};
+use abyssiniandb::filedb::{
+    CheckFileDbMap, FileBufSizeParam, FileDbMap, FileDbMapDbString, FileDbParams, HashBucketsParam,
+};
 use abyssiniandb::{DbMap, DbMapKeyType, DbString};
 use abyssiniandb::{DbXxx, DbXxxBase};
 use std::str::FromStr;
 
-pub fn run(_program: &str, args: &[&str]) -> anyhow::Result<()> {
+pub fn run(program: &str, args: &[&str]) -> anyhow::Result<()> {
+    if args.len() < 1 {
+        println!("[usage] {} {{ {} }}", program, "1|2|3|4|5");
+        return Ok(());
+    }
     match args[0] {
         "1" => test01(&args[1..])?,
         "2" => test02(&args[1..])?,
         "3" => test03(&args[1..])?,
         "4" => test04(&args[1..])?,
-        "5" => test05(&args[1..])?,
+        "5" => test05(program, &args[1..])?,
         _ => (),
     }
     Ok(())
 }
 
-use abyssiniandb::filedb::CheckFileDbMap;
+//use abyssiniandb::filedb::CheckFileDbMap;
 //use abyssiniandb::filedb::FileDbMapDbInt;
 //use abyssiniandb::filedb::FileDbMapDbString;
 //use abyssiniandb::DbMap;
@@ -56,6 +62,15 @@ fn test01(_args: &[&str]) -> anyhow::Result<()> {
         db_map.sync_data().unwrap();
     }
     //
+    /*
+    _print_check_db_map(
+        &db_map,
+        CheckC {
+            ..Default::default()
+        },
+    );
+    */
+    //
     //println!("{}", db_map.graph_string().unwrap());
     //
     {
@@ -89,6 +104,15 @@ fn test01(_args: &[&str]) -> anyhow::Result<()> {
     //
     //println!("{}", db_map.graph_string().unwrap());
     //
+    /*
+    _print_check_db_map(
+        &db_map,
+        CheckC {
+            ..Default::default()
+        },
+    );
+    */
+    //
     Ok(())
 }
 
@@ -96,7 +120,7 @@ fn test02(_args: &[&str]) -> anyhow::Result<()> {
     let db_name = "target/tmp/testA02.abyssiniandb";
     let _ = std::fs::remove_dir_all(db_name);
     let db = abyssiniandb::open_file(db_name).unwrap();
-    let mut db_map = db.db_map_string("some_map1").unwrap();
+    let db_map = db.db_map_string("some_map1").unwrap();
     //
     {
         assert_eq!(db_map.iter().next(), None);
@@ -106,6 +130,94 @@ fn test02(_args: &[&str]) -> anyhow::Result<()> {
 }
 
 fn test03(_args: &[&str]) -> anyhow::Result<()> {
+    //const MAX_VAL: u64 = 1001;
+    const MAX_VAL: u64 = 11;
+    //
+    let db_name = "target/tmp/testA03.abyssiniandb";
+    let _ = std::fs::remove_dir_all(db_name);
+    let db = abyssiniandb::open_file(db_name).unwrap();
+    let mut db_map = db
+        .db_map_int_with_params(
+            "some_u64_1",
+            FileDbParams {
+                buckets_size: HashBucketsParam::Capacity(10),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    //
+    // Try this a few times to make sure we never screw up the hashmap's
+    // internal state.
+    for _ in 0..10 {
+        assert!(db_map.is_empty().unwrap());
+        //
+        /*
+        for i in 1..MAX_VAL {
+            db_map.put(&i, &i.to_le_bytes()).unwrap();
+            //
+            for j in 1..=i {
+                let r = db_map.get(&j).unwrap();
+                assert_eq!(r, Some(j.to_le_bytes().to_vec()));
+            }
+            for j in i + 1..MAX_VAL {
+                let r = db_map.get(&j).unwrap();
+                assert_eq!(r, None);
+            }
+        }
+        for i in MAX_VAL..(2*MAX_VAL) {
+            assert!(!db_map.includes_key(&i).unwrap());
+        }
+        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+        //
+        // remove forwards
+        for i in 1..MAX_VAL {
+            assert!(db_map.delete(&i).unwrap().is_some());
+            for j in 1..=i {
+                assert!(!db_map.includes_key(&j).unwrap());
+            }
+            for j in i + 1..MAX_VAL {
+                assert!(db_map.includes_key(&j).unwrap());
+            }
+        }
+        assert!(db_map.is_empty().unwrap());
+        for i in 1..MAX_VAL {
+            assert!(!db_map.includes_key(&i).unwrap());
+        }
+        */
+        //
+        for i in 1..MAX_VAL {
+            db_map.put(&i, &i.to_le_bytes()).unwrap();
+        }
+        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+        //
+        /*
+        #[rustfmt::skip]
+        _print_check_db_map(&db_map, CheckC { ..Default::default() });
+        */
+        //
+        // remove backwards
+        for i in (1..MAX_VAL).rev() {
+            assert!(db_map.delete(&i).unwrap().is_some());
+            //
+            /*
+            #[rustfmt::skip]
+            _print_check_db_map(&db_map, CheckC { ..Default::default() });
+            */
+            //
+            for j in i..MAX_VAL {
+                assert!(!db_map.includes_key(&j).unwrap());
+            }
+            //
+            for j in 1..i {
+                //assert!(db_map.includes_key(&j).unwrap());
+                if !db_map.includes_key(&j).unwrap() {
+                    panic!("{}:{}", i, j);
+                }
+            }
+        }
+        assert!(db_map.is_empty().unwrap());
+        //println!("");
+    }
     Ok(())
 }
 
@@ -113,7 +225,70 @@ fn test04(_args: &[&str]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn test05(args: &[&str]) -> anyhow::Result<()> {
+#[allow(dead_code)]
+#[derive(Debug, Default, Clone, Copy)]
+struct CheckC {
+    f_graph: bool,
+}
+
+fn _print_check_db_map<KT>(db_map: &FileDbMap<KT>, _check_cnf: CheckC)
+where
+    KT: DbMapKeyType + std::fmt::Display,
+    FileDbMap<KT>: CheckFileDbMap,
+{
+    /*
+    if check_cnf.f_graph {
+        println!("{}", db_map.graph_string_with_key_string().unwrap());
+    }
+    println!(
+        "key piece free: {:?}",
+        db_map.count_of_free_key_piece().unwrap()
+    );
+    let (key_rec_v, val_rec_v, node_v) = db_map.count_of_used_node().unwrap();
+    println!("key piece used: {:?}", key_rec_v);
+    println!(
+        "value piece free: {:?}",
+        db_map.count_of_free_value_piece().unwrap()
+    );
+    println!("value piece used: {:?}", val_rec_v);
+    println!("node free: {:?}", db_map.count_of_free_node().unwrap());
+    println!("node used: {:?}", node_v);
+    println!("db_map.is_balanced(): {}", db_map.is_balanced().unwrap());
+    if check_cnf.f_mst {
+        println!("db_map.is_mst_valid(): {}", db_map.is_mst_valid().unwrap());
+    }
+    println!("db_map.is_dense(): {}", db_map.is_dense().unwrap());
+    println!(
+        "db_map.depth_of_node_tree(): {}",
+        db_map.depth_of_node_tree().unwrap()
+    );
+    #[cfg(feature = "buf_stats")]
+    println!("db_map.buf_stats(): {:?}", db_map.buf_stats());
+    */
+    /*
+    println!(
+        "key_piece_size_stats(): {}",
+        db_map.key_piece_size_stats().unwrap()
+    );
+    println!(
+        "value_piece_size_stats(): {}",
+        db_map.value_piece_size_stats().unwrap()
+    );
+    */
+    println!("key_length_stats(): {}", db_map.key_length_stats().unwrap());
+    /*
+    println!(
+        "value_length_stats(): {}",
+        db_map.value_length_stats().unwrap()
+    );
+    */
+}
+
+fn test05(program: &str, args: &[&str]) -> anyhow::Result<()> {
+    if args.len() < 1 {
+        println!("[usage] {} 5 {{-c|-w|-r|-d}}", program);
+        return Ok(());
+    }
     let db_name = "target/tmp/testA05.abyssiniandb";
     match args[0] {
         "-c" => test05_create(db_name)?,
@@ -145,7 +320,7 @@ fn test05_open_db_map(db_name: &str) -> Result<FileDbMapDbString, std::io::Error
             key_buf_size: FileBufSizeParam::Auto,
             idx_buf_size: FileBufSizeParam::Auto,
             */
-            //..Default::default()
+            ..Default::default()
         },
     )
 }
@@ -319,7 +494,7 @@ fn _test05_delete_one(
     value_vec: &[String],
 ) -> Result<(), std::io::Error> {
     let keys: Vec<&DbString> = key_vec.iter().collect();
-    let result = db_map.bulk_get_string(&keys)?;
+    let result = db_map.bulk_delete_string(&keys)?;
     //
     for (idx, answer) in result.iter().enumerate() {
         if let Some(answer) = answer {

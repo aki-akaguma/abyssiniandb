@@ -1,5 +1,5 @@
 mod test2 {
-    use abyssiniandb::filedb::CheckFileDbMap;
+    //use abyssiniandb::filedb::CheckFileDbMap;
     use abyssiniandb::filedb::FileDbMapDbString;
     use abyssiniandb::{DbXxx, DbXxxBase};
     ////
@@ -62,6 +62,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2000);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -78,6 +80,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2000);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -99,6 +103,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2003);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -122,6 +128,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2003);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -137,6 +145,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2000);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -151,6 +161,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2000);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -172,6 +184,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2003);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -195,6 +209,8 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
+            assert_eq!(db_map.is_empty().unwrap(), false);
+            assert_eq!(db_map.len().unwrap(), 2003);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());

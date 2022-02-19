@@ -290,6 +290,33 @@ impl<T> From<Count<T>> for u16 {
     }
 }
 
+/// The hash value of htx
+#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+pub struct HashValue {
+    val: u64,
+}
+
+impl HashValue {
+    #[inline]
+    pub fn new(val: u64) -> Self {
+        Self { val }
+    }
+    #[inline]
+    pub fn as_value(&self) -> u64 {
+        self.val
+    }
+    #[inline]
+    pub fn _is_zero(&self) -> bool {
+        self.val == 0
+    }
+}
+
+impl Display for HashValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.val.fmt(formatter)
+    }
+}
+
 //--
 #[cfg(test)]
 mod debug {

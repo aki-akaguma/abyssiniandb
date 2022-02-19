@@ -8,3 +8,7 @@ authors = ["aki <aki.akaguma@hotmail.com>"]
 abyssiniandb = { path=".." }
 anyhow = "1.0"
 #regex = "1.5"
+
+[features]
+htx_print_hits = ["abyssiniandb/htx_print_hits"]
+rabuf_print_hits = ["abyssiniandb/rabuf_print_hits"]

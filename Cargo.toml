@@ -34,6 +34,7 @@ rabuf_stats = ["rabuf/buf_stats"]
 # under development
 next_straight = []
 htx_bitmap = []
+htx_print_hits = []
 
 # for test
 abyssiniandb_debug = []

@@ -118,11 +118,16 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
         let mut locked = self.0.borrow_mut();
         locked.read_piece_only_value_offset(offset)
     }
+    /*
     #[inline]
-    pub fn read_piece_only_bucket_next_offset(&self, offset: KeyPieceOffset) -> Result<KeyPieceOffset> {
+    pub fn read_piece_only_bucket_next_offset(
+        &self,
+        offset: KeyPieceOffset,
+    ) -> Result<KeyPieceOffset> {
         let mut locked = self.0.borrow_mut();
         locked.read_piece_only_bucket_next_offset(offset)
     }
+    */
     #[inline]
     pub fn read_piece(&self, offset: KeyPieceOffset) -> Result<KeyPiece<KT>> {
         let mut locked = self.0.borrow_mut();
@@ -233,9 +238,6 @@ fn check_keyrecf_header(file: &mut VarFile, signature2: HeaderSignature) -> Resu
     Ok(())
 }
 
-const ADDING_NEXT_OFFSET_1ST: u64 = 16;
-const ADDING_NEXT_OFFSET_LAST: u64 = 24;
-
 const REC_SIZE_FREE_OFFSET_1ST: u64 = 48;
 
 const REC_SIZE_FREE_OFFSET: [u64; 16] = [
@@ -325,7 +327,7 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             key,
             value_offset,
             bucket_next_offset,
-            ..Default::default()
+            //..Default::default()
         }
     }
     #[inline]
@@ -341,8 +343,7 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             ..Default::default()
         }
     }
-    //#[cfg(feature = "htx")]
-    pub fn hash_value(&self) -> u64 {
+    pub fn _hash_value(&self) -> u64 {
         self.key.hash_value()
     }
     //
@@ -380,7 +381,8 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             #[cfg(feature = "next_straight")]
             let enc_buck_next_off = 8;
             #[cfg(not(feature = "next_straight"))]
-            let enc_buck_next_off = vu64::encoded_len(self.bucket_next_offset.as_value() as u64) as u32;
+            let enc_buck_next_off =
+                vu64::encoded_len(self.bucket_next_offset.as_value() as u64) as u32;
             //
             let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_buck_next_off;
             //

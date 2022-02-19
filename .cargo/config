@@ -1,3 +1,3 @@
 [alias]
-xtask = "run --package xtask --offline --"
-xtask-r = "run --release --package xtask --offline --"
+xtask = "run --package xtask --offline"
+xtask-r = "run --release --package xtask --offline"
