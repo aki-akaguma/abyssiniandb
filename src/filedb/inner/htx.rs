@@ -51,11 +51,13 @@ const HTX_SIZE_ARY: [u32; 0] = [];
 /// returns the number of buckets needed to hold the given number of items,
 /// taking the maximum load factor into account.
 fn capacity_to_buckets_size(cap: u64) -> u64 {
-    debug_assert_ne!(cap, 0);
+    if cap == 0 {
+        panic!("capacity should NOT be zero.");
+    }
     //
-    // for small hash buckets
+    // for small hash buckets. minimum buckets size is 8.
     if cap < 8 {
-        return if cap < 4 { 4 } else { 8 };
+        return 8;
     }
     //
     // otherwise require 1/9 buckets to be empty (88.8% load)
@@ -394,8 +396,10 @@ impl VarFile {
                     byte_8 = self.read_u64_le()?;
                     idx += 8 * 8;
                 }
-                self.seek_back_size(NodePieceSize::new(std::mem::size_of_val(&byte_8) as u32))?;
-                idx -= 8 * 8;
+                if idx > 8 * 8 {
+                    self.seek_back_size(NodePieceSize::new(std::mem::size_of_val(&byte_8) as u32))?;
+                    idx -= 8 * 8;
+                }
                 //
                 let mut byte = 0;
                 while byte == 0 && idx < buckets_size {

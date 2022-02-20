@@ -115,7 +115,7 @@ impl VarFile {
     #[inline]
     pub fn seek_back_size<T: PartialEq + Copy>(&mut self, size: Size<T>) -> Result<Offset<T>> {
         let val: u32 = size.into();
-        self.seek(SeekFrom::Current(- (val as i64)))
+        self.seek(SeekFrom::Current(-(val as i64)))
             .map(Offset::<T>::new)
     }
     #[inline]
