@@ -8,12 +8,17 @@ use std::path::Path;
 use std::rc::Rc;
 
 pub mod kt_dbbytes;
-pub mod kt_dbu64;
 pub mod kt_dbstring;
-
 pub use kt_dbbytes::{DbBytes, FileDbMapDbBytes};
-pub use kt_dbu64::{DbU64, FileDbMapDbU64};
 pub use kt_dbstring::{DbString, FileDbMapDbString};
+
+pub mod kt_dbi64;
+pub mod kt_dbu64;
+pub use kt_dbi64::{DbI64, FileDbMapDbI64};
+pub use kt_dbu64::{DbU64, FileDbMapDbU64};
+
+pub mod kt_dbvu64;
+pub use kt_dbvu64::{DbVu64, FileDbMapDbVu64};
 
 /// DbMap in a file database.
 #[derive(Debug, Clone)]

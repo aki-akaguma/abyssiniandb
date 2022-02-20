@@ -1,5 +1,5 @@
 mod test1 {
-    use abyssiniandb::{DbBytes, DbU64, DbString, DbXxx};
+    use abyssiniandb::{DbBytes, DbString, DbU64, DbXxx};
     //
     fn basic_test_map_string<T: DbXxx<DbString>>(db_map: &mut T) {
         // get nothing

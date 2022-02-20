@@ -6,9 +6,9 @@ use std::rc::Rc;
 mod dbmap;
 mod inner;
 
-pub use dbmap::{
-    DbBytes, DbU64, DbString, FileDbMap, FileDbMapDbBytes, FileDbMapDbU64, FileDbMapDbString,
-};
+pub use dbmap::{DbBytes, DbI64, DbString, DbU64, DbVu64};
+pub use dbmap::{FileDbMap, FileDbMapDbBytes, FileDbMapDbString};
+pub use dbmap::{FileDbMapDbI64, FileDbMapDbU64, FileDbMapDbVu64};
 pub use inner::dbxxx::FileDbXxxInner;
 pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
 use inner::semtype::*;
@@ -68,6 +68,23 @@ impl FileDb {
             None => panic!("Cannot create db_maps: {}", name),
         }
     }
+    pub fn db_map_i64(&self, name: &str) -> Result<FileDbMapDbI64> {
+        self.db_map_i64_with_params(name, FileDbParams::default())
+    }
+    pub fn db_map_i64_with_params(
+        &self,
+        name: &str,
+        params: FileDbParams,
+    ) -> Result<FileDbMapDbI64> {
+        if let Some(m) = RefCell::borrow(&self.0).db_map_i64(name) {
+            return Ok(m);
+        }
+        RefCell::borrow_mut(&self.0).create_db_map_dbi64(name, params)?;
+        match RefCell::borrow(&self.0).db_map_i64(name) {
+            Some(m) => Ok(m),
+            None => panic!("Cannot create db_maps: {}", name),
+        }
+    }
     pub fn db_map_u64(&self, name: &str) -> Result<FileDbMapDbU64> {
         self.db_map_u64_with_params(name, FileDbParams::default())
     }
@@ -81,6 +98,23 @@ impl FileDb {
         }
         RefCell::borrow_mut(&self.0).create_db_map_dbu64(name, params)?;
         match RefCell::borrow(&self.0).db_map_u64(name) {
+            Some(m) => Ok(m),
+            None => panic!("Cannot create db_maps: {}", name),
+        }
+    }
+    pub fn db_map_vu64(&self, name: &str) -> Result<FileDbMapDbVu64> {
+        self.db_map_vu64_with_params(name, FileDbParams::default())
+    }
+    pub fn db_map_vu64_with_params(
+        &self,
+        name: &str,
+        params: FileDbParams,
+    ) -> Result<FileDbMapDbVu64> {
+        if let Some(m) = RefCell::borrow(&self.0).db_map_vu64(name) {
+            return Ok(m);
+        }
+        RefCell::borrow_mut(&self.0).create_db_map_dbvu64(name, params)?;
+        match RefCell::borrow(&self.0).db_map_vu64(name) {
             Some(m) => Ok(m),
             None => panic!("Cannot create db_maps: {}", name),
         }

@@ -2,7 +2,7 @@
 // these tests implemente from:
 // ref.) https://github.com/rust-lang/rust/blob/master/library/std/src/collections/hash/map/tests.rs
 //
-mod test_dbu64 {
+mod test_dbi64 {
     use abyssiniandb::filedb::{FileDbParams, HashBucketsParam};
     use abyssiniandb::{DbMap, DbXxx, DbXxxBase};
     //use std::cell::RefCell;
@@ -10,12 +10,12 @@ mod test_dbu64 {
     #[test]
     #[should_panic]
     fn test_create_capacity_zero() {
-        let db_name = "target/tmp/test_dbu64/test_create_capacity_zero.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_create_capacity_zero.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let _db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(0),
                     ..Default::default()
@@ -25,12 +25,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_insert() {
-        let db_name = "target/tmp/test_dbu64/test_insert.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_insert.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -49,12 +49,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_clone() {
-        let db_name = "target/tmp/test_dbu64/test_clone.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_clone.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -75,12 +75,12 @@ mod test_dbu64 {
         assert_eq!(db_map2.len().unwrap(), 2);
     }
     /* #[test] fn test_empty_entry() {
-        let db_name = "target/tmp/test_dbu64/test_empty_entry.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_empty_entry.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -98,12 +98,12 @@ mod test_dbu64 {
     */
     #[test]
     fn test_empty_iter() {
-        let db_name = "target/tmp/test_dbu64/test_empty_iter.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_empty_iter.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -125,12 +125,12 @@ mod test_dbu64 {
     #[cfg(feature = "large_test")]
     #[test]
     fn test_lots_of_insertions() {
-        let db_name = "target/tmp/test_dbu64/test_lots_of_insertions.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_lots_of_insertions.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(10000),
                     ..Default::default()
@@ -212,12 +212,12 @@ mod test_dbu64 {
     */
     #[test]
     fn test_insert_conflicts() {
-        let db_name = "target/tmp/test_dbu64/test_insert_conflicts.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_insert_conflicts.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -235,12 +235,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_delete_conflicts() {
-        let db_name = "target/tmp/test_dbu64/test_delete_conflicts.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_delete_conflicts.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -267,12 +267,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_is_empty() {
-        let db_name = "target/tmp/test_dbu64/test_is_empty.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_is_empty.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -287,12 +287,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_delete() {
-        let db_name = "target/tmp/test_dbu64/test_delete.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_delete.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -314,12 +314,12 @@ mod test_dbu64 {
     */
     #[test]
     fn test_iterate() {
-        let db_name = "target/tmp/test_dbu64/test_iterate.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_iterate.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -334,7 +334,7 @@ mod test_dbu64 {
         //
         let mut observed: u32 = 0;
         for (k, v) in &db_map {
-            let n: u64 = k.into();
+            let n: i64 = k.into();
             assert_eq!(v[0], n as u8 * 2);
             observed |= 1 << n;
         }
@@ -342,12 +342,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_keys() {
-        let db_name = "target/tmp/test_dbu64/test_keys.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_keys.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -361,7 +361,7 @@ mod test_dbu64 {
             .unwrap();
         assert_eq!(db_map.len().unwrap(), 3);
         //
-        let keys: Vec<u64> = db_map.keys().map(|i| i.into()).collect();
+        let keys: Vec<i64> = db_map.keys().map(|i| i.into()).collect();
         assert_eq!(keys.len(), 3);
         assert!(keys.contains(&1));
         assert!(keys.contains(&2));
@@ -369,12 +369,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_values() {
-        let db_name = "target/tmp/test_dbu64/test_values.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_values.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -434,12 +434,12 @@ mod test_dbu64 {
     */
     #[test]
     fn test_find() {
-        let db_name = "target/tmp/test_dbu64/test_find.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_find.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -455,12 +455,12 @@ mod test_dbu64 {
         }
     }
     /* #[test] fn test_eq() {
-        let db_name = "target/tmp/test_dbu64/test_find.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_find.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map1 = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -468,8 +468,8 @@ mod test_dbu64 {
             )
             .unwrap();
         let mut db_map2 = db
-            .db_map_u64_with_params(
-                "some_u64_2",
+            .db_map_i64_with_params(
+                "some_i64_2",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -492,12 +492,12 @@ mod test_dbu64 {
     }
     */
     /* #[test] fn test_show() {
-        let db_name = "target/tmp/test_dbu64/test_show.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_show.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map1 = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -505,8 +505,8 @@ mod test_dbu64 {
             )
             .unwrap();
         let mut db_map2 = db
-            .db_map_u64_with_params(
-                "some_u64_2",
+            .db_map_i64_with_params(
+                "some_i64_2",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -561,12 +561,12 @@ mod test_dbu64 {
     */
     #[test]
     fn test_put_from_iter() {
-        let db_name = "target/tmp/test_dbu64/test_from_iter.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_from_iter.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -587,12 +587,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_size_hint() {
-        let db_name = "target/tmp/test_dbu64/test_size_hint.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_size_hint.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()
@@ -612,12 +612,12 @@ mod test_dbu64 {
     }
     #[test]
     fn test_iter_len() {
-        let db_name = "target/tmp/test_dbu64/test_iter_len.abyssiniandb";
+        let db_name = "target/tmp/test_dbi64/test_iter_len.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_u64_with_params(
-                "some_u64_1",
+            .db_map_i64_with_params(
+                "some_i64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
                     ..Default::default()

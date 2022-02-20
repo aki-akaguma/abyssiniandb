@@ -1,5 +1,5 @@
 mod test_iter {
-    use abyssiniandb::{DbBytes, DbU64, DbMap, DbMapKeyType, DbString};
+    use abyssiniandb::{DbBytes, DbMap, DbMapKeyType, DbString, DbU64};
     use std::collections::BTreeMap;
     //
     fn iter_test_map_empty_iter<T: DbMap<K>, K: DbMapKeyType>(db_map: &mut T) {
