@@ -1,5 +1,5 @@
 mod test1 {
-    use abyssiniandb::{DbBytes, DbInt, DbString, DbXxx};
+    use abyssiniandb::{DbBytes, DbU64, DbString, DbXxx};
     //
     fn basic_test_map_string<T: DbXxx<DbString>>(db_map: &mut T) {
         // get nothing
@@ -68,7 +68,7 @@ mod test1 {
         //
         db_map.sync_data().unwrap();
     }
-    fn basic_test_map_dbint<T: DbXxx<DbInt>>(db_map: &mut T) {
+    fn basic_test_map_dbint<T: DbXxx<DbU64>>(db_map: &mut T) {
         // get nothing
         let r = db_map.get_string(&1023).unwrap();
         assert_eq!(r, None);
@@ -192,7 +192,7 @@ mod test1 {
         let r = db_map.get_string(key).unwrap();
         assert_eq!(r, None);
     }
-    fn medium_test_map_dbint<T: DbXxx<DbInt>>(db_map: &mut T) {
+    fn medium_test_map_dbint<T: DbXxx<DbU64>>(db_map: &mut T) {
         let key = 123456789;
         let val = "We were fairly accustomed to receive weird telegrams at Baker Street,
      but I have a particular recollection of one which reached us on a
@@ -272,11 +272,11 @@ mod test1 {
         medium_test_map_string(&mut db_map);
     }
     #[test]
-    fn test_file_map_dbint() {
+    fn test_file_map_dbu64() {
         let db_name = "target/tmp/test1-u.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
-        let mut db_map = db.db_map_int("some_u64_1").unwrap();
+        let mut db_map = db.db_map_u64("some_u64_1").unwrap();
         basic_test_map_dbint(&mut db_map);
         medium_test_map_dbint(&mut db_map);
     }

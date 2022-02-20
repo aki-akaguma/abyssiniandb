@@ -7,7 +7,7 @@ mod dbmap;
 mod inner;
 
 pub use dbmap::{
-    DbBytes, DbInt, DbString, FileDbMap, FileDbMapDbBytes, FileDbMapDbInt, FileDbMapDbString,
+    DbBytes, DbU64, DbString, FileDbMap, FileDbMapDbBytes, FileDbMapDbU64, FileDbMapDbString,
 };
 pub use inner::dbxxx::FileDbXxxInner;
 pub use inner::dbxxx::{DbXxxIntoIter, DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
@@ -68,19 +68,19 @@ impl FileDb {
             None => panic!("Cannot create db_maps: {}", name),
         }
     }
-    pub fn db_map_int(&self, name: &str) -> Result<FileDbMapDbInt> {
-        self.db_map_int_with_params(name, FileDbParams::default())
+    pub fn db_map_u64(&self, name: &str) -> Result<FileDbMapDbU64> {
+        self.db_map_u64_with_params(name, FileDbParams::default())
     }
-    pub fn db_map_int_with_params(
+    pub fn db_map_u64_with_params(
         &self,
         name: &str,
         params: FileDbParams,
-    ) -> Result<FileDbMapDbInt> {
-        if let Some(m) = RefCell::borrow(&self.0).db_map_int(name) {
+    ) -> Result<FileDbMapDbU64> {
+        if let Some(m) = RefCell::borrow(&self.0).db_map_u64(name) {
             return Ok(m);
         }
-        RefCell::borrow_mut(&self.0).create_db_map_dbint(name, params)?;
-        match RefCell::borrow(&self.0).db_map_int(name) {
+        RefCell::borrow_mut(&self.0).create_db_map_dbu64(name, params)?;
+        match RefCell::borrow(&self.0).db_map_u64(name) {
             Some(m) => Ok(m),
             None => panic!("Cannot create db_maps: {}", name),
         }

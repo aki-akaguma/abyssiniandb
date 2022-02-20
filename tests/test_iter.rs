@@ -1,5 +1,5 @@
 mod test_iter {
-    use abyssiniandb::{DbBytes, DbInt, DbMap, DbMapKeyType, DbString};
+    use abyssiniandb::{DbBytes, DbU64, DbMap, DbMapKeyType, DbString};
     use std::collections::BTreeMap;
     //
     fn iter_test_map_empty_iter<T: DbMap<K>, K: DbMapKeyType>(db_map: &mut T) {
@@ -74,7 +74,7 @@ mod test_iter {
         //
         //db_map.sync_data().unwrap();
     }
-    fn basic_test_map_dbint<T: DbMap<DbInt>>(db_map: &mut T) {
+    fn basic_test_map_dbint<T: DbMap<DbU64>>(db_map: &mut T) {
         // insert
         db_map.put_string(&12301, "value1").unwrap();
         db_map.put_string(&12302, "value2").unwrap();
@@ -83,7 +83,7 @@ mod test_iter {
         db_map.put_string(&12305, "value5").unwrap();
         assert_eq!(db_map.len().unwrap(), 5);
         // iterator
-        let btmap: BTreeMap<DbInt, Vec<u8>> = db_map.iter_mut().collect();
+        let btmap: BTreeMap<DbU64, Vec<u8>> = db_map.iter_mut().collect();
         let mut iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         assert_eq!(iter.next(), Some((12301.into(), b"value1".to_vec())));
@@ -95,7 +95,7 @@ mod test_iter {
         //
         db_map.sync_data().unwrap();
     }
-    fn medium_test_map_dbint<T: DbMap<DbInt>>(db_map: &mut T) {
+    fn medium_test_map_dbint<T: DbMap<DbU64>>(db_map: &mut T) {
         const LOOP_MAX: u64 = 100;
         // insert
         for i in 0..LOOP_MAX {
@@ -105,7 +105,7 @@ mod test_iter {
         }
         assert_eq!(db_map.len().unwrap(), LOOP_MAX);
         // iterator
-        let btmap: BTreeMap<DbInt, Vec<u8>> = db_map.iter_mut().collect();
+        let btmap: BTreeMap<DbU64, Vec<u8>> = db_map.iter_mut().collect();
         let mut iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         for i in 0..LOOP_MAX {
@@ -116,7 +116,7 @@ mod test_iter {
         assert_eq!(iter.next(), None);
         //
         // iter on loop
-        let btmap: BTreeMap<DbInt, Vec<u8>> = db_map.iter_mut().collect();
+        let btmap: BTreeMap<DbU64, Vec<u8>> = db_map.iter_mut().collect();
         let iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         let mut i: i32 = 0;
@@ -206,11 +206,11 @@ mod test_iter {
         medium_test_map_string(&mut db_map);
     }
     #[test]
-    fn test_file_map_dbint() {
+    fn test_file_map_dbu64() {
         let db_name = "target/tmp/test_iter-u.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
-        let mut db_map = db.db_map_int("some_u64_1").unwrap();
+        let mut db_map = db.db_map_u64("some_u64_1").unwrap();
         //
         iter_test_map_empty_iter(&mut db_map);
         //

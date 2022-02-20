@@ -5,7 +5,7 @@
 mod test_dbu64 {
     use abyssiniandb::filedb::{FileDbParams, HashBucketsParam};
     use abyssiniandb::{DbMap, DbXxx, DbXxxBase};
-    //use abyssiniandb::{DbBytes, DbInt, DbString};
+    //use abyssiniandb::{DbBytes, DbU64, DbString};
     //use std::cell::RefCell;
     //
     #[test]
@@ -15,7 +15,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let _db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(0),
@@ -30,7 +30,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -54,7 +54,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -80,7 +80,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -103,7 +103,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -130,7 +130,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(10000),
@@ -217,7 +217,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -240,7 +240,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -272,7 +272,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -292,7 +292,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -319,7 +319,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -347,7 +347,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -374,7 +374,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -439,7 +439,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -460,7 +460,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map1 = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -469,7 +469,7 @@ mod test_dbu64 {
             )
             .unwrap();
         let mut db_map2 = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_2",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -497,7 +497,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map1 = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -506,7 +506,7 @@ mod test_dbu64 {
             )
             .unwrap();
         let mut db_map2 = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_2",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -566,7 +566,7 @@ mod test_dbu64 {
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
         let mut db_map = db
-            .db_map_int_with_params(
+            .db_map_u64_with_params(
                 "some_u64_1",
                 FileDbParams {
                     buckets_size: HashBucketsParam::Capacity(4),
@@ -591,7 +591,7 @@ mod test_dbu64 {
         let db_name = "target/tmp/test_dbi64/test_size_hint.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
-        let mut db_map = db.db_map_int("some_u64_1").unwrap();
+        let mut db_map = db.db_map_u64("some_u64_1").unwrap();
         //
         let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
         db_map
@@ -608,7 +608,7 @@ mod test_dbu64 {
         let db_name = "target/tmp/test_dbi64/test_iter_len.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         let db = abyssiniandb::open_file(db_name).unwrap();
-        let mut db_map = db.db_map_int("some_u64_1").unwrap();
+        let mut db_map = db.db_map_u64("some_u64_1").unwrap();
         //
         let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
         db_map

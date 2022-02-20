@@ -31,7 +31,7 @@ use std::path::Path;
 
 pub mod filedb;
 
-pub use filedb::{DbBytes, DbInt, DbString};
+pub use filedb::{DbBytes, DbU64, DbString};
 pub use filedb::{DbXxxIter, DbXxxIterMut, DbXxxKeys, DbXxxValues};
 
 /// Open the file db. This data is stored in file.
@@ -293,7 +293,7 @@ pub trait DbMap<KT: DbMapKeyType>: DbXxx<KT> {
 pub trait DbMapDbString: DbXxx<DbString> {}
 
 /// key-value map store interface. the key type is `u64`.
-pub trait DbMapDbInt: DbXxx<DbInt> {}
+pub trait DbMapDbU64: DbXxx<DbU64> {}
 
 /// key-value map store interface. the key type is `Vec<u8>`.
 pub trait DbMapDbBytes: DbXxx<DbBytes> {}

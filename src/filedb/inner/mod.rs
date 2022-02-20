@@ -1,5 +1,5 @@
 use super::super::DbXxxBase;
-use super::{FileDbMapDbBytes, FileDbMapDbInt, FileDbMapDbString, FileDbParams};
+use super::{FileDbMapDbBytes, FileDbMapDbU64, FileDbMapDbString, FileDbParams};
 use std::collections::BTreeMap;
 use std::io::Result;
 use std::path::{Path, PathBuf};
@@ -34,7 +34,7 @@ fn _cold() {}
 #[derive(Debug)]
 pub struct FileDbInner {
     db_bytes_map: BTreeMap<String, FileDbMapDbBytes>,
-    db_int_map: BTreeMap<String, FileDbMapDbInt>,
+    db_u64_map: BTreeMap<String, FileDbMapDbU64>,
     db_string_map: BTreeMap<String, FileDbMapDbString>,
     //
     path: PathBuf,
@@ -48,7 +48,7 @@ impl FileDbInner {
         }
         Ok(FileDbInner {
             db_bytes_map: BTreeMap::new(),
-            db_int_map: BTreeMap::new(),
+            db_u64_map: BTreeMap::new(),
             db_string_map: BTreeMap::new(),
             path: path.to_path_buf(),
         })
@@ -75,9 +75,9 @@ impl FileDbInner {
             }
         }
         {
-            let keys: Vec<_> = self.db_int_map.keys().cloned().collect();
+            let keys: Vec<_> = self.db_u64_map.keys().cloned().collect();
             for a in keys {
-                let mut b = self.db_map_int(&a).unwrap();
+                let mut b = self.db_map_u64(&a).unwrap();
                 func(&mut b)?;
             }
         }
@@ -98,8 +98,8 @@ impl FileDbInner {
         self.db_bytes_map.get(name).cloned()
     }
     #[inline]
-    pub fn db_map_int(&self, name: &str) -> Option<FileDbMapDbInt> {
-        self.db_int_map.get(name).cloned()
+    pub fn db_map_u64(&self, name: &str) -> Option<FileDbMapDbU64> {
+        self.db_u64_map.get(name).cloned()
     }
     #[inline]
     pub fn db_map_string(&self, name: &str) -> Option<FileDbMapDbString> {
@@ -114,12 +114,12 @@ impl FileDbInner {
         self.db_bytes_map.insert(name.to_string(), child)
     }
     #[inline]
-    pub fn db_map_dbint_insert(
+    pub fn db_map_dbu64_insert(
         &mut self,
         name: &str,
-        child: FileDbMapDbInt,
-    ) -> Option<FileDbMapDbInt> {
-        self.db_int_map.insert(name.to_string(), child)
+        child: FileDbMapDbU64,
+    ) -> Option<FileDbMapDbU64> {
+        self.db_u64_map.insert(name.to_string(), child)
     }
     #[inline]
     pub fn db_map_insert(
@@ -142,9 +142,9 @@ impl FileDbInner {
         let _ = self.db_map_bytes_insert(name, child);
         Ok(())
     }
-    pub(super) fn create_db_map_dbint(&mut self, name: &str, params: FileDbParams) -> Result<()> {
-        let child: FileDbMapDbInt = FileDbMapDbInt::open(self.path(), name, params)?;
-        let _ = self.db_map_dbint_insert(name, child);
+    pub(super) fn create_db_map_dbu64(&mut self, name: &str, params: FileDbParams) -> Result<()> {
+        let child: FileDbMapDbU64 = FileDbMapDbU64::open(self.path(), name, params)?;
+        let _ = self.db_map_dbu64_insert(name, child);
         Ok(())
     }
 }

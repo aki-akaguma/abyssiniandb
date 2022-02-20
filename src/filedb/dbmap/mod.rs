@@ -8,11 +8,11 @@ use std::path::Path;
 use std::rc::Rc;
 
 pub mod kt_dbbytes;
-pub mod kt_dbint;
+pub mod kt_dbu64;
 pub mod kt_dbstring;
 
 pub use kt_dbbytes::{DbBytes, FileDbMapDbBytes};
-pub use kt_dbint::{DbInt, FileDbMapDbInt};
+pub use kt_dbu64::{DbU64, FileDbMapDbU64};
 pub use kt_dbstring::{DbString, FileDbMapDbString};
 
 /// DbMap in a file database.
