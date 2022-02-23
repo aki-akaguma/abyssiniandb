@@ -3,12 +3,12 @@ use super::super::{
     CheckFileDbMap, CountOfPerSize, FileDbParams, KeysCountStats, LengthStats, RecordSizeStats,
 };
 use super::_cold;
+use super::key::KeyPieceOffsetIter;
 use super::semtype::*;
+use super::val::ValuePieceOffsetIter;
 use super::{key, val};
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::cmp::Ordering;
-use std::convert::TryInto;
 use std::io::Result;
 use std::path::Path;
 use std::rc::Rc;
@@ -54,8 +54,16 @@ impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
     pub fn is_dirty(&self) -> bool {
         self.dirty
     }
+    /*
     fn key_piece_offset_iter(&self) -> DbXxxKeyPieceOffsetIter<KT> {
         DbXxxKeyPieceOffsetIter::new(self).unwrap()
+    }
+    */
+    fn key_piece_offset_iter(&self) -> KeyPieceOffsetIter {
+        self.key_file.piece_offset_iter()
+    }
+    fn value_piece_offset_iter(&self) -> ValuePieceOffsetIter {
+        self.val_file.piece_offset_iter()
     }
 }
 
@@ -74,6 +82,10 @@ impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
     fn load_key_length(&self, piece_offset: KeyPieceOffset) -> Result<KeyLength> {
         self.key_file.read_piece_only_key_length(piece_offset)
     }
+    #[inline]
+    fn _load_key_value_offset(&self, piece_offset: KeyPieceOffset) -> Result<ValuePieceOffset> {
+        self.key_file.read_piece_only_value_offset(piece_offset)
+    }
     //
     #[inline]
     fn load_value(&self, piece_offset: KeyPieceOffset) -> Result<Vec<u8>> {
@@ -82,15 +94,25 @@ impl<KT: DbMapKeyType> FileDbXxxInner<KT> {
         self.val_file.read_piece_only_value(value_offset)
     }
     #[inline]
+    fn load_value_piece_size(&self, piece_offset: ValuePieceOffset) -> Result<ValuePieceSize> {
+        self.val_file.read_piece_only_size(piece_offset)
+    }
+    /*
     fn load_value_piece_size(&self, piece_offset: KeyPieceOffset) -> Result<ValuePieceSize> {
         let value_offset = self.key_file.read_piece_only_value_offset(piece_offset)?;
         self.val_file.read_piece_only_size(value_offset)
     }
+    */
     #[inline]
+    fn load_value_length(&self, piece_offset: ValuePieceOffset) -> Result<ValueLength> {
+        self.val_file.read_piece_only_value_length(piece_offset)
+    }
+    /*
     fn load_value_length(&self, piece_offset: KeyPieceOffset) -> Result<ValueLength> {
         let value_offset = self.key_file.read_piece_only_value_offset(piece_offset)?;
         self.val_file.read_piece_only_value_length(value_offset)
     }
+    */
 }
 
 // insert: NEW
@@ -345,7 +367,7 @@ impl<'a, KT: DbMapKeyType> DbXxxKeyPieceOffsetIter<'a, KT> {
             self.buckets_idx = buckets_idx;
         }
         //
-        if self.key_offset.is_zero() {
+        if self.key_offset.is_zero() || self.remaining_item_count == 0 {
             _cold();
             None
         } else {
@@ -429,7 +451,7 @@ impl<KT: DbMapKeyType> DbXxxIterMut<KT> {
             self.buckets_idx = buckets_idx;
         }
         //
-        if self.key_offset.is_zero() {
+        if self.key_offset.is_zero() || self.remaining_item_count == 0 {
             _cold();
             None
         } else {
@@ -593,6 +615,82 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT>
     fn ht_size_and_count(&self) -> Result<(u64, u64)> {
         self.htx_file.ht_size_and_count()
     }
+    /// count of the free key piece
+    fn count_of_free_key_piece(&self) -> Result<CountOfPerSize> {
+        self.key_file.count_of_free_key_piece()
+    }
+    /// count of the free value piece
+    fn count_of_free_value_piece(&self) -> Result<CountOfPerSize> {
+        self.val_file.count_of_free_value_piece()
+    }
+    /// buffer statistics
+    #[cfg(feature = "buf_stats")]
+    fn buf_stats(&self) -> Vec<(String, i64)> {
+        let mut vec = self.dat_file.buf_stats();
+        let mut vec2 = self.idx_file.buf_stats();
+        vec.append(&mut vec2);
+        vec
+    }
+    /// piece size statistics
+    fn key_piece_size_stats(&self) -> Result<RecordSizeStats<Key>> {
+        let mut piece_vec = RecordSizeStats::default();
+        //
+        for key_piece_offset in self.key_piece_offset_iter() {
+            let size = self.load_key_piece_size(key_piece_offset)?;
+            let length = self.load_key_length(key_piece_offset)?;
+            if !length.is_zero() {
+                piece_vec.touch_size(size);
+            }
+        }
+        Ok(piece_vec)
+    }
+    fn value_piece_size_stats(&self) -> Result<RecordSizeStats<Value>> {
+        let mut piece_vec = RecordSizeStats::default();
+        //
+        for value_piece_offset in self.value_piece_offset_iter() {
+            let size = self.load_value_piece_size(value_piece_offset)?;
+            let length = self.load_value_length(value_piece_offset)?;
+            if !length.is_zero() {
+                piece_vec.touch_size(size);
+            }
+        }
+        Ok(piece_vec)
+    }
+    /// key length statistics
+    fn key_length_stats(&self) -> Result<LengthStats<Key>> {
+        let mut length_vec = LengthStats::default();
+        //
+        for key_piece_offset in self.key_piece_offset_iter() {
+            //let size = self.load_key_piece_size(key_piece_offset)?;
+            let length = self.load_key_length(key_piece_offset)?;
+            if !length.is_zero() {
+                length_vec.touch_length(length);
+            }
+        }
+        Ok(length_vec)
+    }
+    /// value length statistics
+    fn value_length_stats(&self) -> Result<LengthStats<Value>> {
+        let mut length_vec = LengthStats::default();
+        //
+        for value_piece_offset in self.value_piece_offset_iter() {
+            //let size = self.load_value_piece_size(value_piece_offset)?;
+            let length = self.load_value_length(value_piece_offset)?;
+            if !length.is_zero() {
+                length_vec.touch_length(length);
+            }
+        }
+        Ok(length_vec)
+    }
+    /// keys count statistics
+    fn keys_count_stats(&self) -> Result<KeysCountStats> {
+        //self.idx_file.keys_count_stats()
+        Ok(KeysCountStats::new(Vec::new()))
+    }
+    //#[cfg(feature = "htx")]
+    fn htx_filling_rate_per_mill(&self) -> Result<(u64, u32)> {
+        self.htx_file.htx_filling_rate_per_mill()
+    }
     /*
     /// convert the index node tree to graph string for debug.
     fn graph_string(&self) -> Result<String> {
@@ -643,64 +741,4 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT>
         })
     }
     */
-    /// count of the free key piece
-    fn count_of_free_key_piece(&self) -> Result<CountOfPerSize> {
-        self.key_file.count_of_free_key_piece()
-    }
-    /// count of the free value piece
-    fn count_of_free_value_piece(&self) -> Result<CountOfPerSize> {
-        self.val_file.count_of_free_value_piece()
-    }
-    /// buffer statistics
-    #[cfg(feature = "buf_stats")]
-    fn buf_stats(&self) -> Vec<(String, i64)> {
-        let mut vec = self.dat_file.buf_stats();
-        let mut vec2 = self.idx_file.buf_stats();
-        vec.append(&mut vec2);
-        vec
-    }
-    /// piece size statistics
-    fn key_piece_size_stats(&self) -> Result<RecordSizeStats<Key>> {
-        let mut piece_vec = RecordSizeStats::default();
-        for key_piece_offset in self.key_piece_offset_iter() {
-            let size = self.load_key_piece_size(key_piece_offset)?;
-            piece_vec.touch_size(size);
-        }
-        Ok(piece_vec)
-    }
-    fn value_piece_size_stats(&self) -> Result<RecordSizeStats<Value>> {
-        let mut piece_vec = RecordSizeStats::default();
-        for key_piece_offset in self.key_piece_offset_iter() {
-            let size = self.load_value_piece_size(key_piece_offset)?;
-            piece_vec.touch_size(size);
-        }
-        Ok(piece_vec)
-    }
-    /// keys count statistics
-    fn keys_count_stats(&self) -> Result<KeysCountStats> {
-        //self.idx_file.keys_count_stats()
-        Ok(KeysCountStats::new(Vec::new()))
-    }
-    /// key length statistics
-    fn key_length_stats(&self) -> Result<LengthStats<Key>> {
-        let mut length_vec = LengthStats::default();
-        for key_piece_offset in self.key_piece_offset_iter() {
-            let length = self.load_key_length(key_piece_offset)?;
-            length_vec.touch_length(length);
-        }
-        Ok(length_vec)
-    }
-    /// value length statistics
-    fn value_length_stats(&self) -> Result<LengthStats<Value>> {
-        let mut length_vec = LengthStats::default();
-        for key_piece_offset in self.key_piece_offset_iter() {
-            let length = self.load_value_length(key_piece_offset)?;
-            length_vec.touch_length(length);
-        }
-        Ok(length_vec)
-    }
-    //#[cfg(feature = "htx")]
-    fn htx_filling_rate_per_mill(&self) -> Result<(u64, u32)> {
-        self.htx_file.htx_filling_rate_per_mill()
-    }
 }

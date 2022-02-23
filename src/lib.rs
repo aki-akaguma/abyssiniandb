@@ -305,7 +305,7 @@ pub trait DbMapDbU64: DbXxx<DbU64> {}
 pub trait DbMapDbVu64: DbXxx<DbVu64> {}
 
 /// key type
-pub trait DbMapKeyType: Ord + Clone + Default + HashValue + Debug {
+pub trait DbMapKeyType: 'static + Ord + Clone + Default + HashValue + Debug {
     /// Convert a byte slice to Key.
     fn from_bytes(bytes: &[u8]) -> Self;
     /// Signature in header of database file.

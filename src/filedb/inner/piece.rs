@@ -215,3 +215,78 @@ impl VarFile {
         Ok((piece_size, next_offset))
     }
 }
+
+pub(crate) trait PieceA<T> {
+    fn piece_offset_start(&self) -> Result<PieceOffset<T>>;
+    fn piece_offset_end(&self) -> Result<PieceOffset<T>>;
+    fn piece_size(&self, offset: PieceOffset<T>) -> Result<PieceSize<T>>;
+}
+
+impl<T: core::fmt::Debug> core::fmt::Debug for dyn PieceA<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        /*
+        let offset_start = self.piece_offset_start();
+        let offset_end = self.piece_offset_end();
+        write!(f, "PieceA{{{:?}, {:?}}}", offset_start, offset_end)
+        */
+        write!(f, "PieceA{{}}")
+    }
+}
+
+// for Iterator
+//
+#[derive(Debug)]
+pub(crate) struct PieceOffsetIter<T> {
+    file_a: Box<dyn PieceA<T>>,
+    piece_offset_start: PieceOffset<T>,
+    piece_offset_end: PieceOffset<T>,
+    piece_offset: PieceOffset<T>,
+}
+
+impl<T: PartialEq + Copy + PartialOrd> PieceOffsetIter<T> {
+    pub fn new(file_a: Box<dyn PieceA<T>>) -> Result<Self> {
+        let piece_offset_start = file_a.piece_offset_start()?;
+        let piece_offset_end = file_a.piece_offset_end()?;
+        Ok(Self {
+            file_a,
+            piece_offset_start,
+            piece_offset_end,
+            piece_offset: PieceOffset::<T>::new(0),
+        })
+    }
+    pub fn next_piece_offset(&mut self) -> Result<Option<PieceOffset<T>>> {
+        let offset = self.piece_offset;
+        let next_piece_offset = if offset.is_zero() {
+            self.piece_offset_start
+        } else {
+            let size: PieceSize<T> = self.file_a.piece_size(offset)?;
+            offset + size
+        };
+        if next_piece_offset < self.piece_offset_end {
+            self.piece_offset = next_piece_offset;
+            Ok(Some(next_piece_offset))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+// impl trait: Iterator
+impl<T: PartialEq + Copy + PartialOrd> Iterator for PieceOffsetIter<T> {
+    type Item = PieceOffset<T>;
+    #[inline]
+    fn next(&mut self) -> Option<PieceOffset<T>> {
+        self.next_piece_offset().unwrap()
+    }
+    /*
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (
+            self.remaining_item_count as usize,
+            Some(self.remaining_item_count as usize),
+        )
+    }
+    */
+}
+
+impl<T: PartialEq + Copy + PartialOrd> ExactSizeIterator for PieceOffsetIter<T> {}

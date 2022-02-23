@@ -330,11 +330,14 @@ mod debug {
         assert_eq!(std::mem::size_of::<KeyPieceOffset>(), 8);
         assert_eq!(std::mem::size_of::<ValuePieceOffset>(), 8);
         assert_eq!(std::mem::size_of::<NodePieceOffset>(), 8);
+        //
         assert_eq!(std::mem::size_of::<KeyPieceSize>(), 4);
         assert_eq!(std::mem::size_of::<ValuePieceSize>(), 4);
         assert_eq!(std::mem::size_of::<NodePieceSize>(), 4);
+        //
         assert_eq!(std::mem::size_of::<KeyLength>(), 4);
         assert_eq!(std::mem::size_of::<ValueLength>(), 4);
+        //
         assert_eq!(std::mem::size_of::<KeysCount>(), 2);
     }
 }

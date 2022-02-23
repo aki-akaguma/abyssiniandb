@@ -177,24 +177,6 @@ pub trait CheckFileDbMap {
     /// hash table size and item counts in htx file.
     #[cfg(feature = "htx")]
     fn ht_size_and_count(&self) -> Result<(u64, u64)>;
-    /*
-    /// convert the index node tree to graph string for debug.
-    fn graph_string(&self) -> Result<String>;
-    /// convert the index node tree to graph string for debug.
-    fn graph_string_with_key_string(&self) -> Result<String>;
-    /// check the index node tree is balanced
-    fn is_balanced(&self) -> Result<bool>;
-    /// check the index node tree is multi search tree
-    fn is_mst_valid(&self) -> Result<bool>;
-    /// check the index node except the root and leaves of the tree has branches of hm or more.
-    fn is_dense(&self) -> Result<bool>;
-    /// get the depth of the index node.
-    fn depth_of_node_tree(&self) -> Result<u64>;
-    /// count of the free node
-    fn count_of_free_node(&self) -> Result<CountOfPerSize>;
-    /// count of the used piece and the used node
-    fn count_of_used_node(&self) -> Result<(CountOfPerSize, CountOfPerSize, CountOfPerSize)>;
-    */
     /// count of the free key piece
     fn count_of_free_key_piece(&self) -> Result<CountOfPerSize>;
     /// count of the free key piece
@@ -215,6 +197,24 @@ pub trait CheckFileDbMap {
     /// htx filling rate per mill
     //#[cfg(feature = "htx")]
     fn htx_filling_rate_per_mill(&self) -> Result<(u64, u32)>;
+    /*
+    /// convert the index node tree to graph string for debug.
+    fn graph_string(&self) -> Result<String>;
+    /// convert the index node tree to graph string for debug.
+    fn graph_string_with_key_string(&self) -> Result<String>;
+    /// check the index node tree is balanced
+    fn is_balanced(&self) -> Result<bool>;
+    /// check the index node tree is multi search tree
+    fn is_mst_valid(&self) -> Result<bool>;
+    /// check the index node except the root and leaves of the tree has branches of hm or more.
+    fn is_dense(&self) -> Result<bool>;
+    /// get the depth of the index node.
+    fn depth_of_node_tree(&self) -> Result<u64>;
+    /// count of the free node
+    fn count_of_free_node(&self) -> Result<CountOfPerSize>;
+    /// count of the used piece and the used node
+    fn count_of_used_node(&self) -> Result<(CountOfPerSize, CountOfPerSize, CountOfPerSize)>;
+    */
 }
 
 pub type CountOfPerSize = Vec<(u32, u64)>;

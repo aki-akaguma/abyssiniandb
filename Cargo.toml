@@ -10,6 +10,10 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/aki-akaguma/abyssiniandb"
 
+[[bin]]
+name = "check_main"
+path = "src/check_main.rs"
+
 [features]
 default = ["vf_vu64", "rabuf_default", "htx_bitmap"]
 
@@ -47,6 +51,8 @@ vu64 = "0.1"
 #vu64 = { git = "https://github.com/aki-akaguma/vu64" }
 #rabuf = { path = "../rabuf", default-features=false }
 #vu64 = { path = "../vu64" }
+
+itertools = "0.10"
 
 [dev-dependencies]
 #criterion = "0.3"

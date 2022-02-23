@@ -130,186 +130,105 @@ fn test02(_args: &[&str]) -> anyhow::Result<()> {
 }
 
 fn test03(_args: &[&str]) -> anyhow::Result<()> {
-    test03_u64(_args)?;
-    test03_vu64(_args)?;
-    Ok(())
-}
-
-fn test03_u64(_args: &[&str]) -> anyhow::Result<()> {
-    //const MAX_VAL: u64 = 1001;
-    const MAX_VAL: u64 = 101;
-    //
-    let db_name = "target/tmp/testA03_u64.abyssiniandb";
-    let _ = std::fs::remove_dir_all(db_name);
-    let db = abyssiniandb::open_file(db_name).unwrap();
-    let mut db_map = db
-        .db_map_u64_with_params(
-            "some_u64_1",
-            FileDbParams {
-                buckets_size: HashBucketsParam::Capacity(10),
-                ..Default::default()
-            },
-        )
-        .unwrap();
-    //
-    // Try this a few times to make sure we never screw up the hashmap's
-    // internal state.
-    for _ in 0..10 {
-        assert!(db_map.is_empty().unwrap());
+    {
+        let db_name = "target/tmp/test_dbvu64/test_delete_conflicts.abyssiniandb";
+        let _ = std::fs::remove_dir_all(db_name);
+        let db = abyssiniandb::open_file(db_name).unwrap();
+        let mut db_map = db
+            .db_map_vu64_with_params(
+                "some_vu64_1",
+                FileDbParams {
+                    buckets_size: HashBucketsParam::Capacity(4),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
         //
-        for i in 1..MAX_VAL {
-            db_map.put(&i, &i.to_le_bytes()).unwrap();
-            //
-            for j in 1..=i {
-                let r = db_map.get(&j).unwrap();
-                assert_eq!(r, Some(j.to_le_bytes().to_vec()));
-            }
-            for j in i + 1..MAX_VAL {
-                let r = db_map.get(&j).unwrap();
-                assert_eq!(r, None);
-            }
-        }
-        for i in MAX_VAL..(2*MAX_VAL) {
-            assert!(!db_map.includes_key(&i).unwrap());
-        }
-        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+        db_map.put(&1, &[2_u8]).unwrap();
+        assert_eq!(db_map.get(&1).unwrap(), Some(vec![2_u8]));
         //
-        // remove forwards
-        for i in 1..MAX_VAL {
-            assert!(db_map.delete(&i).unwrap().is_some());
-            for j in 1..=i {
-                assert!(!db_map.includes_key(&j).unwrap());
-            }
-            for j in i + 1..MAX_VAL {
-                assert!(db_map.includes_key(&j).unwrap());
-            }
-        }
-        assert!(db_map.is_empty().unwrap());
-        for i in 1..MAX_VAL {
-            assert!(!db_map.includes_key(&i).unwrap());
-        }
+        db_map.put(&5, &[3_u8]).unwrap();
+        assert_eq!(db_map.get(&1).unwrap(), Some(vec![2_u8]));
+        assert_eq!(db_map.get(&5).unwrap(), Some(vec![3_u8]));
         //
-        for i in 1..MAX_VAL {
-            db_map.put(&i, &i.to_le_bytes()).unwrap();
-        }
-        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+        db_map.put(&9, &[4_u8]).unwrap();
+        assert_eq!(db_map.get(&1).unwrap(), Some(vec![2_u8]));
+        assert_eq!(db_map.get(&5).unwrap(), Some(vec![3_u8]));
+        assert_eq!(db_map.get(&9).unwrap(), Some(vec![4_u8]));
         //
-        /*
-        #[rustfmt::skip]
-        _print_check_db_map(&db_map, CheckC { ..Default::default() });
-        */
-        //
-        // remove backwards
-        for i in (1..MAX_VAL).rev() {
-            assert!(db_map.delete(&i).unwrap().is_some());
-            //
-            /*
-            #[rustfmt::skip]
-            _print_check_db_map(&db_map, CheckC { ..Default::default() });
-            */
-            //
-            for j in i..MAX_VAL {
-                assert!(!db_map.includes_key(&j).unwrap());
-            }
-            //
-            for j in 1..i {
-                assert!(db_map.includes_key(&j).unwrap());
-            }
-        }
-        assert!(db_map.is_empty().unwrap());
-        //println!("");
-    }
-    Ok(())
-}
-
-fn test03_vu64(_args: &[&str]) -> anyhow::Result<()> {
-    //const MAX_VAL: u64 = 1001;
-    const MAX_VAL: u64 = 101;
-    //
-    let db_name = "target/tmp/testA03_vu64.abyssiniandb";
-    let _ = std::fs::remove_dir_all(db_name);
-    let db = abyssiniandb::open_file(db_name).unwrap();
-    let mut db_map = db
-        .db_map_vu64_with_params(
-            "some_vu64_1",
-            FileDbParams {
-                buckets_size: HashBucketsParam::Capacity(10),
-                ..Default::default()
-            },
-        )
-        .unwrap();
-    //
-    // Try this a few times to make sure we never screw up the hashmap's
-    // internal state.
-    for _ in 0..10 {
-        assert!(db_map.is_empty().unwrap());
-        //
-        for i in 1..MAX_VAL {
-            db_map.put(&i, &i.to_le_bytes()).unwrap();
-            //
-            for j in 1..=i {
-                let r = db_map.get(&j).unwrap();
-                assert_eq!(r, Some(j.to_le_bytes().to_vec()));
-            }
-            for j in i + 1..MAX_VAL {
-                let r = db_map.get(&j).unwrap();
-                assert_eq!(r, None);
-            }
-        }
-        for i in MAX_VAL..(2*MAX_VAL) {
-            assert!(!db_map.includes_key(&i).unwrap());
-        }
-        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
-        //
-        // remove forwards
-        for i in 1..MAX_VAL {
-            assert!(db_map.delete(&i).unwrap().is_some());
-            for j in 1..=i {
-                assert!(!db_map.includes_key(&j).unwrap());
-            }
-            for j in i + 1..MAX_VAL {
-                assert!(db_map.includes_key(&j).unwrap());
-            }
-        }
-        assert!(db_map.is_empty().unwrap());
-        for i in 1..MAX_VAL {
-            assert!(!db_map.includes_key(&i).unwrap());
-        }
-        //
-        for i in 1..MAX_VAL {
-            db_map.put(&i, &i.to_le_bytes()).unwrap();
-        }
-        assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
-        //
-        /*
-        #[rustfmt::skip]
-        _print_check_db_map(&db_map, CheckC { ..Default::default() });
-        */
-        //
-        // remove backwards
-        for i in (1..MAX_VAL).rev() {
-            assert!(db_map.delete(&i).unwrap().is_some());
-            //
-            /*
-            #[rustfmt::skip]
-            _print_check_db_map(&db_map, CheckC { ..Default::default() });
-            */
-            //
-            for j in i..MAX_VAL {
-                assert!(!db_map.includes_key(&j).unwrap());
-            }
-            //
-            for j in 1..i {
-                assert!(db_map.includes_key(&j).unwrap());
-            }
-        }
-        assert!(db_map.is_empty().unwrap());
-        //println!("");
+        assert_eq!(db_map.delete(&1).unwrap(), Some(vec![2_u8]));
+        assert_eq!(db_map.get(&9).unwrap(), Some(vec![4_u8]));
+        assert_eq!(db_map.get(&5).unwrap(), Some(vec![3_u8]));
+        assert_eq!(db_map.get(&1).unwrap(), None);
     }
     Ok(())
 }
 
 fn test04(_args: &[&str]) -> anyhow::Result<()> {
+    test04_u64(_args)?;
+    test04_vu64(_args)?;
+    Ok(())
+}
+
+fn test04_u64(_args: &[&str]) -> anyhow::Result<()> {
+    const MAX_VAL: u64 = 1001;
+    //const MAX_VAL: u64 = 101;
+    //
+    let db_name = "target/tmp/testA04_u64.abyssiniandb";
+    let _ = std::fs::remove_dir_all(db_name);
+    let db = abyssiniandb::open_file(db_name).unwrap();
+    let mut db_map = db
+        .db_map_u64_with_params(
+            "some_map1",
+            FileDbParams {
+                buckets_size: HashBucketsParam::Capacity(10),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    //
+    assert!(db_map.is_empty().unwrap());
+    //
+    for i in 1..MAX_VAL {
+        db_map.put(&i, &i.to_le_bytes()).unwrap();
+    }
+    for i in 1..MAX_VAL {
+        assert!(db_map.includes_key(&i).unwrap());
+    }
+    assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+    db_map.flush().unwrap();
+    //
+    Ok(())
+}
+
+fn test04_vu64(_args: &[&str]) -> anyhow::Result<()> {
+    const MAX_VAL: u64 = 1001;
+    //const MAX_VAL: u64 = 101;
+    //
+    let db_name = "target/tmp/testA04_vu64.abyssiniandb";
+    let _ = std::fs::remove_dir_all(db_name);
+    let db = abyssiniandb::open_file(db_name).unwrap();
+    let mut db_map = db
+        .db_map_vu64_with_params(
+            "some_map1",
+            FileDbParams {
+                buckets_size: HashBucketsParam::Capacity(10),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    //
+    assert!(db_map.is_empty().unwrap());
+    //
+    for i in 1..MAX_VAL {
+        db_map.put(&i, &i.to_le_bytes()).unwrap();
+    }
+    for i in 1..MAX_VAL {
+        assert!(db_map.includes_key(&i).unwrap());
+    }
+    assert_eq!(db_map.len().unwrap(), MAX_VAL - 1);
+    db_map.flush().unwrap();
+    //
     Ok(())
 }
 

@@ -1,6 +1,6 @@
 use super::super::super::DbMapKeyType;
 use super::super::{FileBufSizeParam, FileDbParams};
-use super::piece::PieceMgr;
+use super::piece::{PieceA, PieceMgr, PieceOffsetIter};
 use super::semtype::*;
 use super::vfile::VarFile;
 use rabuf::{SmallRead, SmallWrite};
@@ -17,7 +17,7 @@ type HeaderSignature = [u8; 8];
 //const CHUNK_SIZE: u32 = 4 * 4 * 1024;
 //const CHUNK_SIZE: u32 = 4 * 4 * 4 * 1024;
 const CHUNK_SIZE: u32 = 128 * 1024;
-const _DAT_HEADER_SZ: u64 = 192;
+const DAT_HEADER_SZ: u64 = 192;
 const DAT_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'K', 0u8];
 
 use std::marker::PhantomData;
@@ -96,6 +96,10 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         let locked = self.0.borrow();
         locked.0.buf_stats()
+    }
+    //
+    pub(crate) fn piece_offset_iter(&self) -> KeyPieceOffsetIter {
+        KeyPieceOffsetIter::new(self).unwrap()
     }
     //
     #[inline]
@@ -608,6 +612,57 @@ impl<KT: DbMapKeyType> VarFileKeyCache<KT> {
     }
 }
 
+impl<KT: DbMapKeyType> PieceA<Key> for KeyFile<KT> {
+    fn piece_offset_start(&self) -> Result<PieceOffset<Key>> {
+        Ok(KeyPieceOffset::new(DAT_HEADER_SZ))
+    }
+    fn piece_offset_end(&self) -> Result<PieceOffset<Key>> {
+        let mut file = self.0.borrow_mut();
+        file.0.seek_to_end()
+    }
+    fn piece_size(&self, offset: PieceOffset<Key>) -> Result<PieceSize<Key>> {
+        let mut file = self.0.borrow_mut();
+        let _ = file.0.seek_from_start(offset)?;
+        file.0.read_piece_size()
+    }
+}
+
+// for Iterator
+//
+#[derive(Debug)]
+pub(crate) struct KeyPieceOffsetIter {
+    piece_iter: PieceOffsetIter<Key>,
+}
+impl KeyPieceOffsetIter {
+    pub fn new<KT: DbMapKeyType>(key_file: &KeyFile<KT>) -> Result<Self> {
+        let piece_iter = PieceOffsetIter::<Key>::new(Box::new(key_file.clone()))?;
+        Ok(Self { piece_iter })
+    }
+    fn next_piece_offset(&mut self) -> Result<Option<PieceOffset<Key>>> {
+        self.piece_iter.next_piece_offset()
+    }
+}
+
+// impl trait: Iterator
+impl Iterator for KeyPieceOffsetIter {
+    type Item = KeyPieceOffset;
+    #[inline]
+    fn next(&mut self) -> Option<KeyPieceOffset> {
+        self.next_piece_offset().unwrap()
+    }
+    /*
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (
+            self.remaining_item_count as usize,
+            Some(self.remaining_item_count as usize),
+        )
+    }
+    */
+}
+
+impl ExactSizeIterator for KeyPieceOffsetIter {}
+
 /*
 ```text
 used piece:
@@ -619,7 +674,6 @@ used piece:
 | --     | --    | key data    | raw key data                      |
 | --     | 8     | val offset  | value piece offset: u64           |
 | --     | 8     | bucket next | bucket next key piece offset: u64 |
-| --     | 8     | adding next | adding next key piece offset: u64 |
 | --     | --    | reserve     | reserved free space               |
 +--------+-------+-------------+-----------------------------------+
 ```

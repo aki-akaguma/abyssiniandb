@@ -396,7 +396,7 @@ impl VarFile {
                     byte_8 = self.read_u64_le()?;
                     idx += 8 * 8;
                 }
-                if idx > 8 * 8 {
+                if idx >= 8 * 8 {
                     self.seek_back_size(NodePieceSize::new(std::mem::size_of_val(&byte_8) as u32))?;
                     idx -= 8 * 8;
                 }
