@@ -323,7 +323,7 @@ struct DbXxxKeyPieceOffsetIter<'a, KT: DbMapKeyType> {
 }
 
 impl<'a, KT: DbMapKeyType> DbXxxKeyPieceOffsetIter<'a, KT> {
-    fn new(db_map_inner: &'a FileDbXxxInner<KT>) -> Result<Self> {
+    fn _new(db_map_inner: &'a FileDbXxxInner<KT>) -> Result<Self> {
         let (buckets_size, remaining_item_count) = {
             //let db_map_inner = RefCell::borrow(&db_map);
             (

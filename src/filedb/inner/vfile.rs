@@ -431,19 +431,19 @@ impl VarFile {
 //#[cfg(any(feature = "htx", feature = "next_straight"))]
 impl VarFile {
     #[inline]
-    pub fn read_value_piece_offset(&mut self) -> Result<ValuePieceOffset> {
+    pub fn _read_value_piece_offset(&mut self) -> Result<ValuePieceOffset> {
         self.read_u64_le().map(PieceOffset::new)
     }
     #[inline]
-    pub fn write_value_piece_offset<T>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
+    pub fn _write_value_piece_offset<T>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         self.write_u64_le(piece_offset.as_value())
     }
     #[inline]
-    pub fn read_next_piece_offset(&mut self) -> Result<KeyPieceOffset> {
+    pub fn _read_next_piece_offset(&mut self) -> Result<KeyPieceOffset> {
         self.read_u64_le().map(PieceOffset::new)
     }
     #[inline]
-    pub fn write_next_piece_offset<T>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
+    pub fn _write_next_piece_offset<T>(&mut self, piece_offset: PieceOffset<T>) -> Result<()> {
         self.write_u64_le(piece_offset.as_value())
     }
 }
