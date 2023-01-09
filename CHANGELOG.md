@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 * clippy: this let-binding has unit value
+* clippy: unnecessary_cast, needless_borrow
 
 
 ## [0.1.0] (2022-02-13)

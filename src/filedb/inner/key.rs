@@ -380,13 +380,13 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             #[cfg(feature = "next_straight")]
             let enc_val_off = 8;
             #[cfg(not(feature = "next_straight"))]
-            let enc_val_off = vu64::encoded_len(self.value_offset.as_value() as u64) as u32;
+            let enc_val_off = vu64::encoded_len(self.value_offset.as_value()) as u32;
             //
             #[cfg(feature = "next_straight")]
             let enc_buck_next_off = 8;
             #[cfg(not(feature = "next_straight"))]
             let enc_buck_next_off =
-                vu64::encoded_len(self.bucket_next_offset.as_value() as u64) as u32;
+                vu64::encoded_len(self.bucket_next_offset.as_value()) as u32;
             //
             let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_buck_next_off;
             //
