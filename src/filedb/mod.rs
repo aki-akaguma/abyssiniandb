@@ -48,7 +48,7 @@ impl FileDb {
         RefCell::borrow_mut(&self.0).create_db_map(name, params)?;
         match RefCell::borrow(&self.0).db_map_string(name) {
             Some(m) => Ok(m),
-            None => panic!("Cannot create db_maps: {}", name),
+            None => panic!("Cannot create db_maps: {name}"),
         }
     }
     pub fn db_map_bytes(&self, name: &str) -> Result<FileDbMapDbBytes> {
@@ -65,7 +65,7 @@ impl FileDb {
         RefCell::borrow_mut(&self.0).create_db_map_bytes(name, params)?;
         match RefCell::borrow(&self.0).db_map_bytes(name) {
             Some(m) => Ok(m),
-            None => panic!("Cannot create db_maps: {}", name),
+            None => panic!("Cannot create db_maps: {name}"),
         }
     }
     pub fn db_map_i64(&self, name: &str) -> Result<FileDbMapDbI64> {
@@ -82,7 +82,7 @@ impl FileDb {
         RefCell::borrow_mut(&self.0).create_db_map_dbi64(name, params)?;
         match RefCell::borrow(&self.0).db_map_i64(name) {
             Some(m) => Ok(m),
-            None => panic!("Cannot create db_maps: {}", name),
+            None => panic!("Cannot create db_maps: {name}"),
         }
     }
     pub fn db_map_u64(&self, name: &str) -> Result<FileDbMapDbU64> {
@@ -99,7 +99,7 @@ impl FileDb {
         RefCell::borrow_mut(&self.0).create_db_map_dbu64(name, params)?;
         match RefCell::borrow(&self.0).db_map_u64(name) {
             Some(m) => Ok(m),
-            None => panic!("Cannot create db_maps: {}", name),
+            None => panic!("Cannot create db_maps: {name}"),
         }
     }
     pub fn db_map_vu64(&self, name: &str) -> Result<FileDbMapDbVu64> {
@@ -116,7 +116,7 @@ impl FileDb {
         RefCell::borrow_mut(&self.0).create_db_map_dbvu64(name, params)?;
         match RefCell::borrow(&self.0).db_map_vu64(name) {
             Some(m) => Ok(m),
-            None => panic!("Cannot create db_maps: {}", name),
+            None => panic!("Cannot create db_maps: {name}"),
         }
     }
 }
@@ -244,13 +244,13 @@ impl<T: Copy> std::fmt::Display for RecordSizeStats<T> {
         formatter.write_str("[")?;
         if self.0.len() > 1 {
             for (a, b) in self.0.iter().take(self.0.len() - 1) {
-                formatter.write_fmt(format_args!("({}, {})", a, b))?;
+                formatter.write_fmt(format_args!("({a}, {b})"))?;
                 formatter.write_str(", ")?;
             }
         }
         if !self.0.is_empty() {
             let (a, b) = self.0[self.0.len() - 1];
-            formatter.write_fmt(format_args!("({}, {})", a, b))?;
+            formatter.write_fmt(format_args!("({a}, {b})"))?;
         }
         formatter.write_str("]")?;
         Ok(())
@@ -285,13 +285,13 @@ impl std::fmt::Display for KeysCountStats {
         formatter.write_str("[")?;
         if self.0.len() > 1 {
             for (a, b) in self.0.iter().take(self.0.len() - 1) {
-                formatter.write_fmt(format_args!("({}, {})", a, b))?;
+                formatter.write_fmt(format_args!("({a}, {b})"))?;
                 formatter.write_str(", ")?;
             }
         }
         if !self.0.is_empty() {
             let (a, b) = self.0[self.0.len() - 1];
-            formatter.write_fmt(format_args!("({}, {})", a, b))?;
+            formatter.write_fmt(format_args!("({a}, {b})"))?;
         }
         formatter.write_str("]")?;
         Ok(())
@@ -323,13 +323,13 @@ impl<T: Default + Copy> std::fmt::Display for LengthStats<T> {
         formatter.write_str("[")?;
         if self.0.len() > 1 {
             for (a, b) in self.0.iter().take(self.0.len() - 1) {
-                formatter.write_fmt(format_args!("({}, {})", a, b))?;
+                formatter.write_fmt(format_args!("({a}, {b})"))?;
                 formatter.write_str(", ")?;
             }
         }
         if !self.0.is_empty() {
             let (a, b) = self.0[self.0.len() - 1];
-            formatter.write_fmt(format_args!("({}, {})", a, b))?;
+            formatter.write_fmt(format_args!("({a}, {b})"))?;
         }
         formatter.write_str("]")?;
         Ok(())

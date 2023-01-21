@@ -78,7 +78,7 @@ impl HtxFile {
     ) -> Result<Self> {
         let piece_mgr = PieceMgr::new(&HTX_SIZE_FREE_OFFSET, &HTX_SIZE_ARY);
         let mut pb = path.as_ref().to_path_buf();
-        pb.push(format!("{}.htx", ks_name));
+        pb.push(format!("{ks_name}.htx"));
         let std_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -304,8 +304,7 @@ fn check_htxf_header(file: &mut VarFile, signature2: HeaderSignature) -> Result<
     file.read_exact(&mut sig2)?;
     assert!(
         sig2 == signature2,
-        "invalid header signature2, type signature: {:?}",
-        sig2
+        "invalid header signature2, type signature: {sig2:?}"
     );
     // top node offset
     let _top_node_offset = file.read_u64_le()?;

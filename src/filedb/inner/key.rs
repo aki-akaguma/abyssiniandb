@@ -37,7 +37,7 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
     ) -> Result<Self> {
         let piece_mgr = PieceMgr::new(&REC_SIZE_FREE_OFFSET, &REC_SIZE_ARY);
         let mut pb = path.as_ref().to_path_buf();
-        pb.push(format!("{}.key", ks_name));
+        pb.push(format!("{ks_name}.key"));
         let std_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -232,8 +232,7 @@ fn check_keyrecf_header(file: &mut VarFile, signature2: HeaderSignature) -> Resu
     file.read_exact(&mut sig2)?;
     assert!(
         sig2 == signature2,
-        "invalid header signature2, type signature: {:?}",
-        sig2
+        "invalid header signature2, type signature: {sig2:?}"
     );
     // reserve0
     let _reserve0 = file.read_u64_le()?;
@@ -286,7 +285,7 @@ pub(crate) const REC_SIZE_ARY: [u32; 16] = [
 impl KeyPieceSize {
     pub(crate) fn is_valid_key(&self) -> bool {
         let piece_size = self.as_value();
-        assert!(piece_size > 0, "piece_size: {} > 0", piece_size);
+        assert!(piece_size > 0, "piece_size: {piece_size} > 0");
         for &sz in &REC_SIZE_ARY {
             if sz == piece_size {
                 return true;
@@ -294,8 +293,7 @@ impl KeyPieceSize {
         }
         assert!(
             piece_size > REC_SIZE_ARY[REC_SIZE_ARY.len() - 2],
-            "piece_size: {} > REC_SIZE_ARY[REC_SIZE_ARY.len() - 2]: {}",
-            piece_size,
+            "piece_size: {piece_size} > REC_SIZE_ARY[REC_SIZE_ARY.len() - 2]: {}",
             REC_SIZE_ARY[REC_SIZE_ARY.len() - 2]
         );
         true

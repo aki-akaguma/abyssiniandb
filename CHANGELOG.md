@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 * clippy: this let-binding has unit value
 * clippy: unnecessary\_cast, needless\_borrow
+* clippy: bool\_assert\_comparison, explicit\_counter\_loop, useless\_conversion
+* clippy: uninlined\_format\_args, seek\_from\_current
 
 
 ## [0.1.0] (2022-02-13)

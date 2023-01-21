@@ -92,7 +92,7 @@ impl VarFile {
         let pos = self
             .seek(SeekFrom::Start(offset.into()))
             .map(Offset::<T>::new)?;
-        debug_assert!(pos == offset, "_pos: {} == offset: {}", pos, offset);
+        debug_assert!(pos == offset, "_pos: {pos} == offset: {offset}");
         self.prepare(offset)?;
         Ok(pos)
     }
@@ -124,7 +124,7 @@ impl VarFile {
     }
     #[inline]
     pub fn seek_position<T>(&mut self) -> Result<Offset<T>> {
-        self.seek(SeekFrom::Current(0)).map(Offset::<T>::new)
+        self.stream_position().map(Offset::<T>::new)
     }
     ///
     #[inline]
@@ -169,10 +169,7 @@ impl VarFile {
             let _piece_size = self.read_piece_size()?;
             debug_assert!(
                 _piece_size.is_zero() || size == _piece_size,
-                "size: {} == _piece_size: {}, offset: {}",
-                size,
-                _piece_size,
-                offset
+                "size: {size} == _piece_size: {_piece_size}, offset: {offset}"
             );
         }
         self.seek_from_start(offset)?;
@@ -685,7 +682,7 @@ impl ReadVu64 for VarFile {
                 Ok(i) => Ok(i),
                 Err(err) => Err(std::io::Error::new(
                     std::io::ErrorKind::Other,
-                    format!("{}", err),
+                    format!("{err}"),
                 )),
             }
         }

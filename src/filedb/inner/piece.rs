@@ -22,7 +22,7 @@ impl PieceMgr {
 impl PieceMgr {
     pub fn free_piece_list_offset_of_header<T>(&self, piece_size: PieceSize<T>) -> u64 {
         let piece_size = piece_size.as_value();
-        debug_assert!(piece_size > 0, "piece_size: {} > 0", piece_size);
+        debug_assert!(piece_size > 0, "piece_size: {piece_size} > 0");
         for i in 0..self.size_ary.len() {
             if self.size_ary[i] == piece_size {
                 return self.free_list_offset[i];
@@ -30,8 +30,7 @@ impl PieceMgr {
         }
         debug_assert!(
             piece_size > self.size_ary[self.size_ary.len() - 2],
-            "piece_size: {} > pi_mgr.size_ary[pi_mgr.size_ary.len() - 2]: {}",
-            piece_size,
+            "piece_size: {piece_size} > pi_mgr.size_ary[pi_mgr.size_ary.len() - 2]: {}",
             self.size_ary[self.size_ary.len() - 2]
         );
         self.free_list_offset[self.free_list_offset.len() - 1]
@@ -42,7 +41,7 @@ impl PieceMgr {
     }
     pub fn roundup<T>(&self, piece_size: PieceSize<T>) -> PieceSize<T> {
         let piece_size = piece_size.as_value();
-        debug_assert!(piece_size > 0, "piece_size: {} > 0", piece_size);
+        debug_assert!(piece_size > 0, "piece_size: {piece_size} > 0");
         for &n_sz in self.size_ary.iter().take(self.size_ary.len() - 1) {
             if piece_size <= n_sz {
                 return PieceSize::<T>::new(n_sz);
@@ -53,7 +52,7 @@ impl PieceMgr {
     pub fn can_down<T>(&self, piece_size: PieceSize<T>, need_size: PieceSize<T>) -> bool {
         let piece_size = piece_size.as_value();
         let need_size = need_size.as_value();
-        debug_assert!(piece_size > 0, "piece_size: {} > 0", piece_size);
+        debug_assert!(piece_size > 0, "piece_size: {piece_size} > 0");
         match self.size_ary[..(self.size_ary.len() - 1)].binary_search(&need_size) {
             Ok(k) => {
                 let n_sz = self.size_ary[k];

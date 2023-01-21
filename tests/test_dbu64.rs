@@ -357,7 +357,7 @@ mod test_dbu64 {
         //
         let xs = [(1, b'a'), (2, b'b'), (3, b'c')];
         db_map
-            .put_from_iter(xs.iter().map(|&(k, v)| (k.into(), vec![v as u8])))
+            .put_from_iter(xs.iter().map(|&(k, v)| (k.into(), vec![v])))
             .unwrap();
         assert_eq!(db_map.len().unwrap(), 3);
         //
@@ -384,7 +384,7 @@ mod test_dbu64 {
         //
         let xs = [(1, b'a'), (2, b'b'), (3, b'c')];
         db_map
-            .put_from_iter(xs.iter().map(|&(k, v)| (k.into(), vec![v as u8])))
+            .put_from_iter(xs.iter().map(|&(k, v)| (k.into(), vec![v])))
             .unwrap();
         assert_eq!(db_map.len().unwrap(), 3);
         //

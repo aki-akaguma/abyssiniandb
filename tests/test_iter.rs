@@ -3,7 +3,7 @@ mod test_iter {
     use std::collections::BTreeMap;
     //
     fn iter_test_map_empty_iter<T: DbMap<K>, K: DbMapKeyType>(db_map: &mut T) {
-        assert_eq!(db_map.is_empty().unwrap(), true);
+        assert!(db_map.is_empty().unwrap());
         assert_eq!(db_map.len().unwrap(), 0);
         //
         //assert_eq!(db_map.drain().next(), None);
@@ -40,8 +40,8 @@ mod test_iter {
         const LOOP_MAX: u64 = 100;
         // insert
         for i in 0..LOOP_MAX {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             db_map.put_string(&key, &value).unwrap();
         }
         assert_eq!(db_map.len().unwrap(), LOOP_MAX);
@@ -50,8 +50,8 @@ mod test_iter {
         let mut iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         for i in 0..LOOP_MAX {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             assert_eq!(iter.next(), Some((key.into(), value.as_bytes().to_vec())));
         }
         assert_eq!(iter.next(), None);
@@ -60,13 +60,11 @@ mod test_iter {
         let btmap: BTreeMap<DbString, Vec<u8>> = db_map.iter_mut().collect();
         let iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
-        let mut i: i32 = 0;
-        for (k, v) in iter {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+        for (i, (k, v)) in (0_i32..).zip(iter) {
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             assert_eq!(k, key.into());
             assert_eq!(v, value.as_bytes().to_vec());
-            i += 1;
         }
         //
         // into iter on loop
@@ -99,8 +97,8 @@ mod test_iter {
         const LOOP_MAX: u64 = 100;
         // insert
         for i in 0..LOOP_MAX {
-            let key = 12300u64 + i as u64;
-            let value = format!("value{}", i);
+            let key = 12300u64 + i;
+            let value = format!("value{i}");
             db_map.put_string(&key, &value).unwrap();
         }
         assert_eq!(db_map.len().unwrap(), LOOP_MAX);
@@ -109,8 +107,8 @@ mod test_iter {
         let mut iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         for i in 0..LOOP_MAX {
-            let key = 12300u64 + i as u64;
-            let value = format!("value{}", i);
+            let key = 12300u64 + i;
+            let value = format!("value{i}");
             assert_eq!(iter.next(), Some((key.into(), value.as_bytes().to_vec())));
         }
         assert_eq!(iter.next(), None);
@@ -119,13 +117,11 @@ mod test_iter {
         let btmap: BTreeMap<DbU64, Vec<u8>> = db_map.iter_mut().collect();
         let iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
-        let mut i: i32 = 0;
-        for (k, v) in iter {
+        for (i, (k, v)) in (0_i32..).zip(iter) {
             let key = 12300u64 + i as u64;
-            let value = format!("value{}", i);
+            let value = format!("value{i}");
             assert_eq!(k, key.into());
             assert_eq!(v, value.as_bytes().to_vec());
-            i += 1;
         }
         //
         // into iter on loop
@@ -135,11 +131,11 @@ mod test_iter {
     }
     fn basic_test_map_bytes<T: DbMap<DbBytes>>(db_map: &mut T) {
         // insert
-        db_map.put_string(b"key01".into(), "value1").unwrap();
-        db_map.put_string(b"key02".into(), "value2").unwrap();
-        db_map.put_string(b"key03".into(), "value3").unwrap();
-        db_map.put_string(b"key04".into(), "value4").unwrap();
-        db_map.put_string(b"key05".into(), "value5").unwrap();
+        db_map.put_string(b"key01", "value1").unwrap();
+        db_map.put_string(b"key02", "value2").unwrap();
+        db_map.put_string(b"key03", "value3").unwrap();
+        db_map.put_string(b"key04", "value4").unwrap();
+        db_map.put_string(b"key05", "value5").unwrap();
         assert_eq!(db_map.len().unwrap(), 5);
         // iterator
         let btmap: BTreeMap<DbBytes, Vec<u8>> = db_map.iter_mut().collect();
@@ -158,8 +154,8 @@ mod test_iter {
         const LOOP_MAX: u64 = 100;
         // insert
         for i in 0..LOOP_MAX {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             db_map.put_string(&key, &value).unwrap();
         }
         assert_eq!(db_map.len().unwrap(), LOOP_MAX);
@@ -168,8 +164,8 @@ mod test_iter {
         let mut iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
         for i in 0..LOOP_MAX {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             assert_eq!(iter.next(), Some((key.into(), value.as_bytes().to_vec())));
         }
         assert_eq!(iter.next(), None);
@@ -178,13 +174,11 @@ mod test_iter {
         let btmap: BTreeMap<DbBytes, Vec<u8>> = db_map.iter_mut().collect();
         let iter = btmap.into_iter();
         //let mut iter = db_map.iter_mut();
-        let mut i: i32 = 0;
-        for (k, v) in iter {
-            let key = format!("key{:02}", i);
-            let value = format!("value{}", i);
+        for (i, (k, v)) in (0_i32..).zip(iter) {
+            let key = format!("key{i:02}");
+            let value = format!("value{i}");
             assert_eq!(k, key.into());
             assert_eq!(v, value.as_bytes().to_vec());
-            i += 1;
         }
         //
         // into iter on loop

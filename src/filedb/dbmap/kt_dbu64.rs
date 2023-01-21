@@ -33,7 +33,7 @@ impl HashValue for DbU64 {}
 impl Display for DbU64 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let ss = String::from_utf8_lossy(&self.0).to_string();
-        write!(f, "'{}'", ss)
+        write!(f, "'{ss}'")
     }
 }
 
