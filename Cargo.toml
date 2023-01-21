@@ -35,6 +35,7 @@ rabuf_lru = ["rabuf/buf_lru"]
 rabuf_print_hits = ["rabuf/buf_print_hits"]
 rabuf_stats = ["rabuf/buf_stats"]
 
+myhasher = []
 
 # under development
 next_straight = []

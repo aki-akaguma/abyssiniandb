@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * build status badges into `README.tpl`
 * badges into `README.tpl`
 * `.github/workflows/test.yml`
+* `.github/workflows/test-miri.yml`
+* `.github/workflows/test-outdated.yml`
 
 ### Changed
 * minimum support rustc 1.58.1
