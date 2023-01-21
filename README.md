@@ -4,6 +4,7 @@
 [![Docs][docs-image]][docs-link]
 ![Rust Version][rustc-image]
 ![Apache2/MIT licensed][license-image]
+[![Test][test-image]][test-link]
 
 The simple local key-value store.
 
@@ -51,5 +52,7 @@ at your option.
 [crate-link]: https://crates.io/crates/abyssiniandb
 [docs-image]: https://docs.rs/abyssiniandb/badge.svg
 [docs-link]: https://docs.rs/abyssiniandb/
-[rustc-image]: https://img.shields.io/badge/rustc-1.56+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.58+-blue.svg
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
+[test-image]: https://github.com/aki-akaguma/abyssiniandb/actions/workflows/test.yml/badge.svg
+[test-link]: https://github.com/aki-akaguma/abyssiniandb/actions/workflows/test.yml

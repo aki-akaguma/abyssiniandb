@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] *
 ### Added
+* build status badges into `README.tpl`
 * badges into `README.tpl`
-* `.github/workflows/ci.yml`
+* `.github/workflows/test.yml`
 
 ### Changed
 * minimum support rustc 1.58.1
