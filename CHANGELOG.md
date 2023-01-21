@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `.github/workflows/ci.yml`
 
 ### Changed
+* minimum support rustc 1.58.1
 * reformat `CHANGELOG.md`
 
 ### Fixed
+* bypass test `test_size_of()` on windows
 * clippy: this let-binding has unit value
 * clippy: unnecessary\_cast, needless\_borrow
 * clippy: bool\_assert\_comparison, explicit\_counter\_loop, useless\_conversion

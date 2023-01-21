@@ -318,6 +318,7 @@ impl Display for HashValue {
 }
 
 //--
+#[cfg(not(windows))]
 #[cfg(test)]
 mod debug {
     use super::{
