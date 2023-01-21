@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] *
 ### Added
 * badges into `README.tpl`
+* `.github/workflows/ci.yml`
 
 ### Changed
 * reformat `CHANGELOG.md`
 
 ### Fixed
 * clippy: this let-binding has unit value
-* clippy: unnecessary_cast, needless_borrow
+* clippy: unnecessary\_cast, needless\_borrow
 
 
 ## [0.1.0] (2022-02-13)
