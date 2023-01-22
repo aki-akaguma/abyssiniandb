@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] *
 ### Added
+* `_xorshift64s()` for `myhasher`
 * build status badges into `README.tpl`
 * badges into `README.tpl`
 * `.github/workflows/test.yml`
@@ -14,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `.github/workflows/test-outdated.yml`
 
 ### Changed
+* rename feature `myhasher` to `std_default_hasher`
 * minimum support rustc 1.58.1
 * reformat `CHANGELOG.md`
 

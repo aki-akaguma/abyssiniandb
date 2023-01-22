@@ -13,10 +13,8 @@ use std::rc::Rc;
 
 type HeaderSignature = [u8; 8];
 
-//const CHUNK_SIZE: u32 = 4 * 1024;
-//const CHUNK_SIZE: u32 = 4 * 4 * 1024;
-//const CHUNK_SIZE: u32 = 4 * 4 * 4 * 1024;
-const CHUNK_SIZE: u32 = 128 * 1024;
+//const CHUNK_SIZE: u32 = 16 * 4 * 1024;
+const CHUNK_SIZE: u32 = 32 * 4 * 1024;
 const DAT_HEADER_SZ: u64 = 192;
 const DAT_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'K', 0u8];
 
@@ -383,8 +381,7 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
             #[cfg(feature = "next_straight")]
             let enc_buck_next_off = 8;
             #[cfg(not(feature = "next_straight"))]
-            let enc_buck_next_off =
-                vu64::encoded_len(self.bucket_next_offset.as_value()) as u32;
+            let enc_buck_next_off = vu64::encoded_len(self.bucket_next_offset.as_value()) as u32;
             //
             let piece_len: u32 = enc_key_len + key_len.as_value() + enc_val_off + enc_buck_next_off;
             //

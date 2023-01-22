@@ -35,8 +35,6 @@ rabuf_lru = ["rabuf/buf_lru"]
 rabuf_print_hits = ["rabuf/buf_print_hits"]
 rabuf_stats = ["rabuf/buf_stats"]
 
-myhasher = []
-
 # under development
 next_straight = []
 htx_bitmap = []
@@ -45,6 +43,9 @@ htx_print_hits = []
 # for test
 abyssiniandb_debug = []
 rabuf_debug = ["rabuf/buf_debug"]
+std_default_hasher = []
+myhasher_george1 = []
+myhasher_george2 = []
 
 [dependencies]
 rabuf = { version = "0.1", default-features=false }

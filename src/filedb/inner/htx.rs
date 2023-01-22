@@ -12,9 +12,7 @@ use std::rc::Rc;
 
 type HeaderSignature = [u8; 8];
 
-//const CHUNK_SIZE: u32 = 4 * 1024;
-const CHUNK_SIZE: u32 = 128 * 1024;
-//const CHUNK_SIZE: u32 = 1024 * 1024;
+const CHUNK_SIZE: u32 = 32 * 4 * 1024;
 const HTX_HEADER_SZ: u64 = 128;
 const HTX_HEADER_SIGNATURE: HeaderSignature = [b'a', b'b', b'y', b's', b'd', b'b', b'H', 0u8];
 const DEFAULT_HT_SIZE: u64 = 16 * 1024 * 1024;

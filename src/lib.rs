@@ -331,9 +331,9 @@ pub trait HashValue: Hash {
     /// hash value for htx
     fn hash_value(&self) -> u64 {
         use std::hash::Hasher;
-        #[cfg(not(feature = "myhasher"))]
+        #[cfg(feature = "std_default_hasher")]
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        #[cfg(feature = "myhasher")]
+        #[cfg(not(feature = "std_default_hasher"))]
         let mut hasher = MyHasher::default();
         self.hash(&mut hasher);
         hasher.finish()
@@ -353,7 +353,8 @@ impl std::hash::Hasher for MyHasher {
             if len == 8 {
                 let mut ary = [0u8; 8];
                 ary.copy_from_slice(chunk8);
-                let a = u64::from_le_bytes(ary);
+                //let a = u64::from_le_bytes(ary);
+                let a = u64::from_be_bytes(ary);
                 self.0 = _xorshift64s(self.0.wrapping_add(a));
             } else {
                 let mut a = 0;
@@ -366,12 +367,27 @@ impl std::hash::Hasher for MyHasher {
     }
 }
 
+// ref.) https://en.wikipedia.org/wiki/Xorshift
 #[inline]
 fn _xorshift64s(a: u64) -> u64 {
     //let mut x = a.rotate_right(12);
     let mut x = a;
-    x ^= x >> 12;
-    x ^= x << 25;
-    x ^= x >> 27;
+    #[cfg(not(any(feature = "myhasher_george1", feature = "myhasher_george2")))]
+    {
+        x ^= x >> 12;
+        x ^= x << 25;
+        x ^= x >> 27;
+    }
+    #[cfg(feature = "myhasher_george1")]
+    {
+        x ^= x >> 13;
+        x ^= x << 7;
+        x ^= x >> 17;
+    }
+    #[cfg(feature = "myhasher_george2")]
+    {
+        x ^= x << 7;
+        x ^= x >> 9;
+    }
     x
 }
