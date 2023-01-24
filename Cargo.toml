@@ -11,10 +11,6 @@ readme = "README.md"
 rust-version = "1.58.1"
 repository = "https://github.com/aki-akaguma/abyssiniandb"
 
-[[bin]]
-name = "check_main"
-path = "src/check_main.rs"
-
 [features]
 default = ["vf_vu64", "rabuf_default", "htx_bitmap"]
 
@@ -58,10 +54,10 @@ vu64 = "0.1"
 itertools = "0.10"
 
 [dev-dependencies]
-#criterion = "0.3"
 
 [workspace]
 members = [
     "xtask",
+    "xtool",
 ]
 

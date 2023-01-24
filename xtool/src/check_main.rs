@@ -2,16 +2,24 @@ use abyssiniandb::filedb::{CheckFileDbMap, FileBufSizeParam, FileDbParams};
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
+    if args.len() < 2 {
+        print_usage_and_exit(&args[0]);
+    }
     match args[1].as_str() {
         "-s" => check_string(&args[2])?,
         "-b" => check_bytes(&args[2])?,
         "-u" => check_dbu64(&args[2])?,
         "-vu" => check_dbvu64(&args[2])?,
         _ => {
-            eprintln!("[usage] {} {{-s|-b|-u|-vu}} path", args[0]);
+            print_usage_and_exit(&args[0]);
         }
     }
     Ok(())
+}
+
+fn print_usage_and_exit(program: &str) {
+    eprintln!("[usage] {program} {{-s|-b|-u|-vu}} path");
+    std::process::exit(0);
 }
 
 #[derive(Debug, Default, Clone, Copy)]

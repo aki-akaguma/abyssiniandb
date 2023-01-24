@@ -1,5 +1,5 @@
 [package]
-name = "xtask"
+name = "xtool"
 version = "0.1.0"
 edition = "2021"
 authors = ["aki <aki.akaguma@hotmail.com>"]
@@ -11,3 +11,7 @@ anyhow = "1.0"
 [features]
 htx_print_hits = ["abyssiniandb/htx_print_hits"]
 rabuf_print_hits = ["abyssiniandb/rabuf_print_hits"]
+
+[[bin]]
+name = "check_main"
+path = "src/check_main.rs"
