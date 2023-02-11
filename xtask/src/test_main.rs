@@ -8,8 +8,8 @@ use abyssiniandb::{DbXxx, DbXxxBase};
 use std::str::FromStr;
 
 pub fn run(program: &str, args: &[&str]) -> anyhow::Result<()> {
-    if args.len() < 1 {
-        println!("[usage] {} {{ {} }}", program, "1|2|3|4|5");
+    if args.is_empty() {
+        println!("[usage] {program} {{ 1|2|3|4|5 }}");
         return Ok(());
     }
     match args[0] {
@@ -292,8 +292,8 @@ where
 }
 
 fn test05(program: &str, args: &[&str]) -> anyhow::Result<()> {
-    if args.len() < 1 {
-        println!("[usage] {} 5 {{-c|-w|-r|-d}}", program);
+    if args.is_empty() {
+        println!("[usage] {program} 5 {{-c|-w|-r|-d}}");
         return Ok(());
     }
     let db_name = "target/tmp/testA05.abyssiniandb";
@@ -338,7 +338,7 @@ fn test05_conv_to_kv_string(ki: i64, _vi: i64) -> (DbString, String) {
     //let k = format!("{}.{}.{}.{}", bytes[0], bytes[1], bytes[2], bytes[3]);
     //let k = format!("key-{}.{}.{}", bytes[0], bytes[1], bytes[2]);
     let k = format!("key-{}.{}.{}", bytes[0], bytes[1], bytes[2]).repeat(2);
-    let v = format!("value-{}", ki).repeat(4);
+    let v = format!("value-{ki}").repeat(4);
     //let v = format!("value-{}", ki);
     //let v = format!("{}", _vi);
     //let v = String::new();
@@ -446,7 +446,7 @@ fn _test05_read_one(
         if let Some(answer) = answer {
             let correct = &value_vec[idx];
             if answer != correct {
-                panic!("invalid value: {:?} != {:?}", answer, correct);
+                panic!("invalid value: {answer:?} != {correct:?}");
             }
         } else {
             panic!("not found value: {} => {}", key_vec[idx], value_vec[idx]);
@@ -507,7 +507,7 @@ fn _test05_delete_one(
         if let Some(answer) = answer {
             let correct = &value_vec[idx];
             if answer != correct {
-                panic!("invalid value: {:?} != {:?}", answer, correct);
+                panic!("invalid value: {answer:?} != {correct:?}");
             }
         } else {
             panic!("not found value: {} => {}", key_vec[idx], value_vec[idx]);
