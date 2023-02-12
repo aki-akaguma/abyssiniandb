@@ -10,7 +10,10 @@ mod test_iter {
         //assert_eq!(db_map.keys().next(), None);
         //assert_eq!(db_map.values().next(), None);
         //assert_eq!(db_map.values_mut().next(), None);
-        assert_eq!(db_map.iter().next(), None);
+        #[cfg(not(miri))] // buggy on miri
+        {
+            assert_eq!(db_map.iter().next(), None);
+        }
         //assert_eq!(db_map.iter_mut().next(), None);
         //assert_eq!(db_map.into_iter().next(), None);
     }
@@ -37,7 +40,8 @@ mod test_iter {
         db_map.sync_data().unwrap();
     }
     fn medium_test_map_string<T: DbMap<DbString>>(db_map: &mut T) {
-        const LOOP_MAX: u64 = 100;
+        #[rustfmt::skip]
+        const LOOP_MAX: u64 = if cfg!(miri) { 10 } else { 100 };
         // insert
         for i in 0..LOOP_MAX {
             let key = format!("key{i:02}");
@@ -94,7 +98,8 @@ mod test_iter {
         db_map.sync_data().unwrap();
     }
     fn medium_test_map_dbint<T: DbMap<DbU64>>(db_map: &mut T) {
-        const LOOP_MAX: u64 = 100;
+        #[rustfmt::skip]
+        const LOOP_MAX: u64 = if cfg!(miri) { 10 } else { 100 };
         // insert
         for i in 0..LOOP_MAX {
             let key = 12300u64 + i;
@@ -151,7 +156,8 @@ mod test_iter {
         db_map.sync_data().unwrap();
     }
     fn medium_test_map_bytes<T: DbMap<DbBytes>>(db_map: &mut T) {
-        const LOOP_MAX: u64 = 100;
+        #[rustfmt::skip]
+        const LOOP_MAX: u64 = if cfg!(miri) { 3 } else { 100 };
         // insert
         for i in 0..LOOP_MAX {
             let key = format!("key{i:02}");
@@ -187,6 +193,7 @@ mod test_iter {
         //db_map.sync_data().unwrap();
     }
     ////
+    #[cfg(not(miri))] // buggy on miri
     #[test]
     fn test_file_map_string() {
         let db_name = "target/tmp/test_iter-s.abyssiniandb";
@@ -199,6 +206,7 @@ mod test_iter {
         basic_test_map_string(&mut db_map);
         medium_test_map_string(&mut db_map);
     }
+    #[cfg(not(miri))] // buggy on miri
     #[test]
     fn test_file_map_dbu64() {
         let db_name = "target/tmp/test_iter-u.abyssiniandb";
@@ -211,6 +219,7 @@ mod test_iter {
         basic_test_map_dbint(&mut db_map);
         medium_test_map_dbint(&mut db_map);
     }
+    #[cfg(not(miri))] // buggy on miri
     #[test]
     fn test_file_map_bytes() {
         let db_name = "target/tmp/test_iter-b.abyssiniandb";

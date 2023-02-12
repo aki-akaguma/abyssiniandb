@@ -11,7 +11,7 @@ mod test2 {
         let db_map = db.db_map_string("some_map1").unwrap();
         fun(db_map);
     }
-    fn load_fixtures(path: &str) -> Vec<(String, String)> {
+    fn load_fixtures(count: Option<usize>, path: &str) -> Vec<(String, String)> {
         use std::io::{BufRead, BufReader};
         //
         let mut vec = Vec::new();
@@ -19,21 +19,26 @@ mod test2 {
         let file = std::fs::File::open(path).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut line = String::new();
+        #[rustfmt::skip]
+        let mut counter = if let Some(a) = count { a } else { usize::MAX };
         while let Ok(size) = buf_reader.read_line(&mut line) {
-            if size == 0 {
+            if size == 0 || counter == 0 {
                 break;
             }
             if let Some((a, b)) = line[..(line.len() - 1)].split_once(' ') {
                 vec.push((a.to_string(), b.to_string()));
             }
             line.clear();
+            counter -= 1;
         }
         vec
     }
     ////
     #[test]
     fn test_fixtures_procs() {
-        let data = load_fixtures("fixtures/test-procs.txt");
+        #[rustfmt::skip]
+        let count = if cfg!(miri) { Some(10) } else { None };
+        let data = load_fixtures(count, "fixtures/test-procs.txt");
         let db_name = "target/tmp/test21.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         //
@@ -48,13 +53,17 @@ mod test2 {
     ////
     #[test]
     fn test_fixtures_fruits() {
-        let data = load_fixtures("fixtures/test-fruits.txt");
-        let data = &data[..2000];
+        #[rustfmt::skip]
+        let count = if cfg!(miri) { Some(10) } else { None };
+        let data = load_fixtures(count, "fixtures/test-fruits.txt");
         let db_name = "target/tmp/test22.abyssiniandb";
         let _ = std::fs::remove_dir_all(db_name);
         //
+        #[rustfmt::skip]
+        let expect_db_map_len = if cfg!(miri) { 10 } else { 5133 };
+        //
         do_file_map_string(db_name, |mut db_map: FileDbMapDbString| {
-            for (k, v) in data {
+            for (k, v) in &data {
                 db_map.put(k, v.as_bytes()).unwrap();
             }
             //
@@ -63,7 +72,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2000);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -72,7 +81,7 @@ mod test2 {
         });
         //
         do_file_map_string(db_name, |mut db_map: FileDbMapDbString| {
-            for (k, v) in data {
+            for (k, v) in &data {
                 db_map.put(k, v.as_bytes()).unwrap();
             }
             //
@@ -81,7 +90,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2000);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -104,7 +113,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2003);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len + 3);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -129,7 +138,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2003);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len + 3);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -146,7 +155,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2000);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -162,7 +171,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2000);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -185,7 +194,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2003);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len + 3);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
@@ -210,7 +219,7 @@ mod test2 {
         //
         do_file_map_string(db_name, |db_map: FileDbMapDbString| {
             assert!(!db_map.is_empty().unwrap());
-            assert_eq!(db_map.len().unwrap(), 2003);
+            assert_eq!(db_map.len().unwrap(), expect_db_map_len + 3);
             /*
             assert!(db_map.is_balanced().unwrap());
             assert!(db_map.is_mst_valid().unwrap());
