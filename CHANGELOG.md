@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * refactored `Makefile`
+* output of tartarpaulin to `lcov` and `html` is generted by `genhtml`
 
 ### Removed
 * `COPYING`
