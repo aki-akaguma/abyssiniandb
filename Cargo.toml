@@ -51,7 +51,7 @@ vu64 = "0.1"
 #rabuf = { path = "../rabuf", default-features=false }
 #vu64 = { path = "../vu64" }
 
-itertools = "0.10"
+itertools = "0.13"
 
 [dev-dependencies]
 
