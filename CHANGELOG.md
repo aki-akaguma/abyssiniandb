@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * rename: `config` to `config.toml`
 * update crates: itertools(0.13.0)
 
+### Fixed
+* clippy: suspicious_open_options, empty_docs, dead_code
+
 
 ## [0.1.3] (2023-02-13)
 ### Added

@@ -313,6 +313,7 @@ impl<KT: DbMapKeyType> DbXxxObjectSafe<KT> for FileDbXxxInner<KT> {
 
 // for Iterator
 //
+#[allow(dead_code)]
 #[derive(Debug)]
 struct DbXxxKeyPieceOffsetIter<'a, KT: DbMapKeyType> {
     db_map_inner: &'a FileDbXxxInner<KT>,
