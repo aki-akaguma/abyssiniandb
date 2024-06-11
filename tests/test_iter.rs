@@ -192,7 +192,7 @@ mod test_iter {
         //
         //db_map.sync_data().unwrap();
     }
-    ////
+    //
     #[cfg(not(miri))] // buggy on miri
     #[test]
     fn test_file_map_string() {

@@ -261,7 +261,7 @@ mod test1 {
         medium_test_map_bytes(&mut db_map);
     }
     */
-    ////
+    //
     #[test]
     fn test_file_map_string() {
         let db_name = "target/tmp/test1-s.abyssiniandb";
