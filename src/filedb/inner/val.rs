@@ -88,7 +88,7 @@ impl ValueFile {
         let mut locked = self.0.borrow_mut();
         locked.0.sync_data()
     }
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     #[inline]
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         let locked = self.0.borrow();
@@ -306,9 +306,9 @@ impl ValuePiece {
     }
     //
     fn encoded_piece_size(&self) -> (u32, u32, ValueLength) {
-        #[cfg(feature = "siamese_debug")]
+        #[cfg(feature = "abyssiniandb_debug")]
         let value_len = ValueLength::new(self.value.len().try_into().unwrap());
-        #[cfg(not(feature = "siamese_debug"))]
+        #[cfg(not(feature = "abyssiniandb_debug"))]
         let value_len = ValueLength::new(self.value.len() as u32);
         //
         #[cfg(any(feature = "vf_u32u32", feature = "vf_u64u64"))]
@@ -333,9 +333,9 @@ impl ValuePiece {
         assert!(!self.size.is_zero());
         //
         let value = &self.value;
-        #[cfg(feature = "siamese_debug")]
+        #[cfg(feature = "abyssiniandb_debug")]
         let value_len = ValueLength::new(value.len().try_into().unwrap());
-        #[cfg(not(feature = "siamese_debug"))]
+        #[cfg(not(feature = "abyssiniandb_debug"))]
         let value_len = ValueLength::new(value.len() as u32);
         //
         file.seek_from_start(self.offset)?;

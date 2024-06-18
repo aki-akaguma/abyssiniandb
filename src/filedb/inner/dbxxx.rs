@@ -612,10 +612,11 @@ impl<KT: DbMapKeyType> ExactSizeIterator for DbXxxValues<KT> {}
 
 // for debug
 impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT> {
-    #[cfg(feature = "htx")]
+    /*
     fn ht_size_and_count(&self) -> Result<(u64, u64)> {
         self.htx_file.ht_size_and_count()
     }
+    */
     /// count of the free key piece
     fn count_of_free_key_piece(&self) -> Result<CountOfPerSize> {
         self.key_file.count_of_free_key_piece()
@@ -625,7 +626,7 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbXxxInner<KT>
         self.val_file.count_of_free_value_piece()
     }
     /// buffer statistics
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     fn buf_stats(&self) -> Vec<(String, i64)> {
         let mut vec = self.dat_file.buf_stats();
         let mut vec2 = self.idx_file.buf_stats();

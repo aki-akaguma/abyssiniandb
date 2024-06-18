@@ -19,6 +19,9 @@ vf_u32u32 = []
 vf_u64u64 = []
 vf_vu64 = []
 
+vf_node_u32 = []
+vf_node_u64 = []
+
 rabuf_default = ["rabuf_auto_buf_size", "rabuf_overf_rem_all", "rabuf_pin_zero", "rabuf_hash_turbo"]
 
 rabuf_auto_buf_size = ["rabuf/buf_auto_buf_size"]
@@ -42,6 +45,7 @@ rabuf_debug = ["rabuf/buf_debug"]
 std_default_hasher = []
 myhasher_george1 = []
 myhasher_george2 = []
+large_test = []
 
 [dependencies]
 rabuf = { version = "0.1", default-features=false }

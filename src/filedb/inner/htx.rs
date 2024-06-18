@@ -150,7 +150,7 @@ impl HtxFile {
         let mut locked = RefCell::borrow_mut(&self.0);
         locked.file.sync_data()
     }
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     #[inline]
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         let locked = RefCell::borrow(&self.0);

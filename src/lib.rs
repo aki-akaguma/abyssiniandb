@@ -314,6 +314,7 @@ pub trait DbMapKeyType: 'static + Ord + Clone + Default + HashValue + Debug {
     fn as_bytes(&self) -> &[u8];
     /// Compare with stored data
     fn cmp_u8(&self, other: &[u8]) -> std::cmp::Ordering;
+    /*
     /// Short byte slice of data to be saved node.
     #[cfg(feature = "tr_has_short_key")]
     fn as_short_bytes(&self) -> Option<&[u8]> {
@@ -324,6 +325,7 @@ pub trait DbMapKeyType: 'static + Ord + Clone + Default + HashValue + Debug {
             None
         }
     }
+    */
 }
 
 /// hash value for htx

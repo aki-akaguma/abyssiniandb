@@ -90,7 +90,7 @@ impl<KT: DbMapKeyType> KeyFile<KT> {
         let mut locked = self.0.borrow_mut();
         locked.0.sync_data()
     }
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     #[inline]
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         let locked = self.0.borrow();
@@ -350,9 +350,9 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
     //
     fn encoded_piece_size(&self) -> (u32, u32, KeyLength) {
         let key = self.key.as_bytes();
-        #[cfg(feature = "siamese_debug")]
+        #[cfg(feature = "abyssiniandb_debug")]
         let key_len = KeyLength::new(key.len().try_into().unwrap());
-        #[cfg(not(feature = "siamese_debug"))]
+        #[cfg(not(feature = "abyssiniandb_debug"))]
         let key_len = KeyLength::new(key.len() as u32);
         //
         #[cfg(any(feature = "vf_u32u32", feature = "vf_u64u64"))]
@@ -397,9 +397,9 @@ impl<KT: DbMapKeyType> KeyPiece<KT> {
         assert!(!self.size.is_zero());
         //
         let key = self.key.as_bytes();
-        #[cfg(feature = "siamese_debug")]
+        #[cfg(feature = "abyssiniandb_debug")]
         let key_len = KeyLength::new(key.len().try_into().unwrap());
-        #[cfg(not(feature = "siamese_debug"))]
+        #[cfg(not(feature = "abyssiniandb_debug"))]
         let key_len = KeyLength::new(key.len() as u32);
         //
         file.seek_from_start(self.offset)?;

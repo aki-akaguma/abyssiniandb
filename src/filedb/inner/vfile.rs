@@ -4,7 +4,7 @@ use rabuf::{BufFile, FileSetLen, FileSync, MaybeSlice, SmallRead, SmallWrite};
 use std::fs::File;
 use std::io::{Read, Result, Seek, SeekFrom, Write};
 
-#[cfg(feature = "siamese_debug")]
+#[cfg(feature = "abyssiniandb_debug")]
 #[cfg(not(feature = "vf_u64u64"))]
 use std::convert::TryInto;
 
@@ -77,7 +77,7 @@ impl VarFile {
         self.buf_file.clear()
     }
     //
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     pub fn buf_stats(&self) -> Vec<(String, i64)> {
         self.buf_file.buf_stats()
     }
@@ -711,12 +711,12 @@ impl VarFile {
     */
     #[inline]
     pub fn read_vu64_u32(&mut self) -> Result<u32> {
-        #[cfg(feature = "siamese_debug")]
+        #[cfg(feature = "abyssiniandb_debug")]
         let r = self.read_and_decode_vu64().map(|n| {
             n.try_into()
                 .unwrap_or_else(|err| panic!("n:{} :{}", n, err))
         });
-        #[cfg(not(feature = "siamese_debug"))]
+        #[cfg(not(feature = "abyssiniandb_debug"))]
         let r = self.read_and_decode_vu64().map(|n| n as u32);
         r
     }
@@ -752,7 +752,7 @@ impl VarFile {
     }
     //
     #[cfg(any(
-        not(any(feature = "htx", feature = "next_straight")),
+        not(feature = "next_straight"),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]
@@ -760,7 +760,7 @@ impl VarFile {
         self._read_vu64_u64().map(|v| PieceOffset::<T>::new(v * 8))
     }
     #[cfg(any(
-        not(any(feature = "htx", feature = "next_straight")),
+        not(feature = "next_straight"),
         not(any(feature = "vf_node_u32", feature = "vf_node_u64"))
     ))]
     #[inline]

@@ -175,14 +175,16 @@ impl std::default::Default for FileDbParams {
 /// Checks the file db map for debug.
 pub trait CheckFileDbMap {
     /// hash table size and item counts in htx file.
+    /*
     #[cfg(feature = "htx")]
     fn ht_size_and_count(&self) -> Result<(u64, u64)>;
+    */
     /// count of the free key piece
     fn count_of_free_key_piece(&self) -> Result<CountOfPerSize>;
     /// count of the free key piece
     fn count_of_free_value_piece(&self) -> Result<CountOfPerSize>;
     /// buffer statistics
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     fn buf_stats(&self) -> Vec<(String, i64)>;
     /// key piece size statistics
     fn key_piece_size_stats(&self) -> Result<RecordSizeStats<Key>>;

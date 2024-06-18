@@ -42,10 +42,12 @@ impl<KT: DbMapKeyType> FileDbMap<KT> {
 
 /// for debug
 impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbMap<KT> {
+    /*
     #[cfg(feature = "htx")]
     fn ht_size_and_count(&self) -> Result<(u64, u64)> {
         RefCell::borrow(&self.0).ht_size_and_count()
     }
+    */
     /*
     /// convert the index node tree to graph string for debug.
     fn graph_string(&self) -> Result<String> {
@@ -89,7 +91,7 @@ impl<KT: DbMapKeyType + std::fmt::Display> CheckFileDbMap for FileDbMap<KT> {
         RefCell::borrow(&self.0).count_of_free_value_piece()
     }
     /// buffer statistics
-    #[cfg(feature = "buf_stats")]
+    #[cfg(feature = "rabuf_stats")]
     fn buf_stats(&self) -> Vec<(String, i64)> {
         RefCell::borrow(&self.0).buf_stats()
     }
