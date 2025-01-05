@@ -381,7 +381,7 @@ impl<'a, KT: DbMapKeyType> DbXxxKeyPieceOffsetIter<'a, KT> {
 }
 
 // impl trait: Iterator
-impl<'a, KT: DbMapKeyType> Iterator for DbXxxKeyPieceOffsetIter<'a, KT> {
+impl<KT: DbMapKeyType> Iterator for DbXxxKeyPieceOffsetIter<'_, KT> {
     type Item = KeyPieceOffset;
     #[inline]
     fn next(&mut self) -> Option<KeyPieceOffset> {
@@ -396,7 +396,7 @@ impl<'a, KT: DbMapKeyType> Iterator for DbXxxKeyPieceOffsetIter<'a, KT> {
     }
 }
 
-impl<'a, KT: DbMapKeyType> ExactSizeIterator for DbXxxKeyPieceOffsetIter<'a, KT> {}
+impl<KT: DbMapKeyType> ExactSizeIterator for DbXxxKeyPieceOffsetIter<'_, KT> {}
 
 //
 #[derive(Debug)]
