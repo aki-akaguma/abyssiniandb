@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * `rabuf::MaybeSlice<'_>`
+* rust-version = "1.65.0"
 
 
 ## [0.1.4] (2024-06-18)

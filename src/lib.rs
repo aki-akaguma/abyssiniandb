@@ -5,7 +5,6 @@ The simple local key-value store.
 
 - key-value store.
 - hash buckets algorithm.
-- minimum support rustc 1.58.1 (db9d1b20b 2022-01-20)
 
 # Compatibility
 

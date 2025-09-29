@@ -14,7 +14,6 @@ The simple local key-value store.
 
 - key-value store.
 - hash buckets algorithm.
-- minimum support rustc 1.58.1 (db9d1b20b 2022-01-20)
 
 ## Compatibility
 
@@ -54,7 +53,7 @@ at your option.
 [crate-link]: https://crates.io/crates/abyssiniandb
 [docs-image]: https://docs.rs/abyssiniandb/badge.svg
 [docs-link]: https://docs.rs/abyssiniandb/
-[rustc-image]: https://img.shields.io/badge/rustc-1.58+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.65+-blue.svg
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [test-ubuntu-image]: https://github.com/aki-akaguma/abyssiniandb/actions/workflows/test-ubuntu.yml/badge.svg
 [test-ubuntu-link]: https://github.com/aki-akaguma/abyssiniandb/actions/workflows/test-ubuntu.yml
