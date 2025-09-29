@@ -49,6 +49,7 @@ impl PieceMgr {
         }
         PieceSize::<T>::new(((piece_size + 128) / 128) * 128)
     }
+    #[allow(dead_code)]
     pub fn can_down<T>(&self, piece_size: PieceSize<T>, need_size: PieceSize<T>) -> bool {
         let piece_size = piece_size.as_value();
         let need_size = need_size.as_value();
