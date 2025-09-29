@@ -393,3 +393,96 @@ fn _xorshift64s(a: u64) -> u64 {
     }
     x
 }
+
+//
+// Tests for HashValue trait and MyHasher implementation
+//
+#[cfg(test)]
+mod test_hash_value_and_my_hasher {
+    use crate::{DbBytes, DbI64, DbString, DbU64, DbVu64, HashValue, MyHasher};
+    use std::hash::Hasher;
+
+    // Helper function to get hash from MyHasher for a byte slice
+    fn get_my_hasher_hash(bytes: &[u8]) -> u64 {
+        let mut hasher = MyHasher::default();
+        hasher.write(bytes);
+        hasher.finish()
+    }
+
+    #[test]
+    fn test_hash_value_consistency_for_db_i64() {
+        let key1 = DbI64::from(&123_i64);
+        let key2 = DbI64::from(&123_i64);
+        let key3 = DbI64::from(&456_i64);
+
+        assert_eq!(key1.hash_value(), key2.hash_value());
+        assert_ne!(key1.hash_value(), key3.hash_value());
+    }
+
+    #[test]
+    fn test_hash_value_consistency_for_db_string() {
+        let key1 = DbString::from("test_string");
+        let key2 = DbString::from("test_string");
+        let key3 = DbString::from("another_string");
+
+        assert_eq!(key1.hash_value(), key2.hash_value());
+        assert_ne!(key1.hash_value(), key3.hash_value());
+    }
+
+    #[test]
+    fn test_hash_value_consistency_for_db_bytes() {
+        let key1 = DbBytes::from(b"test_bytes");
+        let key2 = DbBytes::from(b"test_bytes");
+        let key3 = DbBytes::from(b"another_bytes");
+
+        assert_eq!(key1.hash_value(), key2.hash_value());
+        assert_ne!(key1.hash_value(), key3.hash_value());
+    }
+
+    #[test]
+    fn test_hash_value_consistency_for_db_u64() {
+        let key1 = DbU64::from(&123_u64);
+        let key2 = DbU64::from(&123_u64);
+        let key3 = DbU64::from(&456_u64);
+
+        assert_eq!(key1.hash_value(), key2.hash_value());
+        assert_ne!(key1.hash_value(), key3.hash_value());
+    }
+
+    #[test]
+    fn test_hash_value_consistency_for_db_vu64() {
+        let key1 = DbVu64::from(&123_u64);
+        let key2 = DbVu64::from(&123_u64);
+        let key3 = DbVu64::from(&456_u64);
+
+        assert_eq!(key1.hash_value(), key2.hash_value());
+        assert_ne!(key1.hash_value(), key3.hash_value());
+    }
+
+    #[test]
+    fn test_my_hasher_basic() {
+        // Expected hash for b"hello" (calculated by running once)
+        // This value might change if MyHasher implementation changes.
+        assert_eq!(get_my_hasher_hash(b"hello"), 15044226207473252623);
+    }
+
+    #[test]
+    fn test_my_hasher_chunks() {
+        // 7 bytes
+        assert_eq!(get_my_hasher_hash(b"1234567"), 4620479649844153407);
+        // 8 bytes
+        assert_eq!(get_my_hasher_hash(b"12345678"), 2251178436469735341);
+        // 9 bytes
+        assert_eq!(get_my_hasher_hash(b"123456789"), 2218070668473021427);
+        // 16 bytes
+        assert_eq!(get_my_hasher_hash(b"abcdefghijklmnop"), 9940804336568882947);
+    }
+
+    #[test]
+    fn test_my_hasher_empty() {
+        assert_eq!(get_my_hasher_hash(b""), 0);
+    }
+
+    // To test _xorshift64s directly, it needs to be public.
+    // For now, we rely on MyHasher tests to cover its usage.
+}
